@@ -9,5 +9,6 @@ docker compose down
 mkdir -p data
 tar -xzf "$FILE" -C data
 mv data/backup.db data/supportflow.db
+chown -R 1000:1000 data 2>/dev/null || true   # Linux: container chạy bằng người dùng uid 1000
 docker compose up -d
 echo "Đã khôi phục. Dữ liệu cũ được giữ trong thư mục data.truoc-khoi-phuc-*"

@@ -3,6 +3,8 @@
 Block: {"type": "text", "text": str, "heading": bool} | {"type": "image", "data": bytes, "ts"?: float, "page"?: int}
 """
 import json
+import re
+import shutil
 import subprocess
 import zipfile
 from pathlib import Path
@@ -121,12 +123,30 @@ def _run(cmd, timeout):
     return subprocess.run(cmd, capture_output=True, timeout=timeout, check=False)
 
 
-def video_duration(path: Path) -> float:
-    r = _run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", str(path)], 30)
+def ffmpeg_bin() -> str:
+    """ffmpeg của hệ thống; nếu không có thì dùng bản đóng gói sẵn của imageio-ffmpeg."""
+    exe = shutil.which("ffmpeg")
+    if exe:
+        return exe
     try:
-        return float(json.loads(r.stdout)["format"]["duration"])
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
     except Exception:
-        raise ImportError_("Không đọc được video (ffprobe).")
+        raise ImportError_("Máy chủ chưa cài FFmpeg.")
+
+
+def video_duration(path: Path) -> float:
+    if shutil.which("ffprobe"):
+        r = _run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", str(path)], 30)
+        try:
+            return float(json.loads(r.stdout)["format"]["duration"])
+        except Exception:
+            raise ImportError_("Không đọc được video (ffprobe).")
+    r = _run([ffmpeg_bin(), "-hide_banner", "-i", str(path)], 30)
+    m = re.search(rb"Duration: (\d+):(\d+):(\d+(?:\.\d+)?)", r.stderr)
+    if not m:
+        raise ImportError_("Không đọc được video.")
+    return int(m[1]) * 3600 + int(m[2]) * 60 + float(m[3])
 
 
 def extract_video(path: Path, workdir: Path) -> tuple[list[dict], float]:
@@ -136,7 +156,7 @@ def extract_video(path: Path, workdir: Path) -> tuple[list[dict], float]:
         raise ImportError_("Video dài hơn 10 phút.")
     step = max(1.0, dur / 90)
     small = workdir / "small"; small.mkdir(parents=True, exist_ok=True)
-    r = _run(["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"fps=1/{step},scale=160:-2", "-q:v", "5",
+    r = _run([ffmpeg_bin(), "-v", "error", "-i", str(path), "-vf", f"fps=1/{step},scale=160:-2", "-q:v", "5",
               str(small / "%04d.jpg")], 300)
     files = sorted(small.glob("*.jpg"))
     if not files:
@@ -157,7 +177,7 @@ def extract_video(path: Path, workdir: Path) -> tuple[list[dict], float]:
     for idx, _ in picks:
         ts = min(idx * step + step / 2, max(dur - 0.1, 0))
         out = workdir / f"f{idx}.png"
-        _run(["ffmpeg", "-v", "error", "-ss", f"{ts:.2f}", "-i", str(path), "-frames:v", "1", str(out)], 60)
+        _run([ffmpeg_bin(), "-v", "error", "-ss", f"{ts:.2f}", "-i", str(path), "-frames:v", "1", str(out)], 60)
         if out.exists():
             blocks.append({"type": "image", "data": out.read_bytes(), "ts": round(ts, 1)})
     return blocks, dur

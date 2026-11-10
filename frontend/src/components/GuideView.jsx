@@ -61,7 +61,12 @@ export default function GuideView({ g, preview }) {
     const m = /^#buoc-(\d+)$/.exec(loc.hash)
     if (!m) return
     const el = document.getElementById(`buoc-${m[1]}`)
-    if (el) { el.scrollIntoView({ block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2200) }
+    if (!el) return
+    const go = () => el.scrollIntoView({ block: 'start', behavior: 'instant' })
+    go(); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2200)
+    // Ảnh phía trên tải xong sẽ đẩy bố cục xuống: cuộn lại sau khi tất cả ảnh đã có kích thước.
+    const pending = [...document.querySelectorAll('.gmain img')].filter((i) => !i.complete)
+    Promise.all(pending.map((i) => new Promise((r) => { i.addEventListener('load', r, { once: true }); i.addEventListener('error', r, { once: true }) }))).then(go)
   }, [loc.hash, g.slug])
 
   useEffect(() => {

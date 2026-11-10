@@ -4,6 +4,7 @@ import { api, fmtDate, fmtTs, media } from '../api.js'
 import Icon from '../icons.jsx'
 import GuideCard, { PlatformTag } from './GuideCard.jsx'
 import StepImage from './StepImage.jsx'
+import Reveal from './Reveal.jsx'
 
 const pad = (n) => String(n).padStart(2, '0')
 const REASONS = [['khong-dung-loi', 'Không đúng lỗi tôi gặp'], ['kho-hieu', 'Hướng dẫn khó hiểu'], ['thieu-buoc', 'Thiếu bước'], ['anh-khac', 'Hình ảnh khác với máy tôi']]
@@ -53,6 +54,12 @@ export default function GuideView({ g, preview }) {
   const [showHot, setShowHot] = useState(true)
   const [active, setActive] = useState(0)
   const video = useRef(null)
+  const rbar = useRef(null)
+  useEffect(() => {
+    const f = () => { const h = document.documentElement; if (rbar.current) rbar.current.style.transform = `scaleX(${h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight)})` }
+    window.addEventListener('scroll', f, { passive: true }); f()
+    return () => window.removeEventListener('scroll', f)
+  }, [])
   const steps = g.steps
   const hasHot = steps.some((s) => s.hotspot)
 
@@ -92,7 +99,9 @@ export default function GuideView({ g, preview }) {
   const fs = focus != null && focus < steps.length ? steps[focus] : null
 
   return (
-    <article className="wrap guide">
+    <article className="guide">
+      {!preview && <div className="rbar" ref={rbar} />}
+      <div className="gband"><div className="fx"><i /><i /></div><div className="wrap">
       {!preview && (
         <nav className="crumbs" aria-label="Đường dẫn">
           <Link to="/">Trang chủ</Link><span>/</span>
@@ -113,11 +122,12 @@ export default function GuideView({ g, preview }) {
           {hasHot && (
             <label className="switch"><input type="checkbox" checked={showHot} onChange={(e) => setShowHot(e.target.checked)} /><span />Hiện điểm cần nhấn</label>
           )}
-          <span className="muted">{steps.length} bước{g.updated_at ? ` · Cập nhật ${fmtDate(g.updated_at)}` : ''}</span>
+          <span className="muted">{steps.length} bước · khoảng {Math.max(1, Math.ceil(steps.length / 2))} phút{g.updated_at ? ` · Cập nhật ${fmtDate(g.updated_at)}` : ''}</span>
         </div>
       </header>
+      </div></div>
 
-      <div className="glayout">
+      <div className="wrap glayout">
         <aside className="toc" aria-label="Mục lục các bước">
           <h4>Các bước</h4>
           <ol>
@@ -139,16 +149,16 @@ export default function GuideView({ g, preview }) {
             </div>
           )}
           {steps.map((s, i) => (
-            <section key={i} id={`buoc-${i + 1}`} data-i={i} className={`step ${g.platform}${s.image ? '' : ' noimg'}`}>
+            <Reveal as="section" key={i} id={`buoc-${i + 1}`} data-i={i} className={`step ${g.platform}${s.image ? '' : ' noimg'}`}>
               <div className="step-txt">
-                <div className="step-no">Bước {pad(i + 1)}</div>
+                <div className="step-no"><small>Bước </small><b>{pad(i + 1)}</b></div>
                 <h2>{s.title}</h2>
                 <Body text={s.body} />
                 <Callouts s={s} />
                 {s.ts != null && g.video && <button className="link" onClick={() => seek(s.ts)}><Icon name="play" size={12} /> Xem trong video ({fmtTs(s.ts)})</button>}
               </div>
               {s.image && <StepImage src={s.image} alt={`Minh hoạ bước ${i + 1}: ${s.title}`} hotspot={s.hotspot} showHot={showHot} platform={g.platform} onZoom={() => setZoom(s)} />}
-            </section>
+            </Reveal>
           ))}
           {steps.length > 0 && <Feedback slug={g.slug} preview={preview} />}
           {g.related?.length > 0 && (
@@ -168,7 +178,7 @@ export default function GuideView({ g, preview }) {
           </div>
           <div className="prog" aria-hidden="true">{steps.map((_, i) => <i key={i} className={i <= focus ? 'on' : ''} />)}</div>
           {fs ? (
-            <div className={`focus-body ${g.platform}${fs.image ? '' : ' noimg'}`}>
+            <div key={focus} className={`focus-body ${g.platform}${fs.image ? '' : ' noimg'}`}>
               {fs.image && <StepImage src={fs.image} hotspot={fs.hotspot} showHot={showHot} platform={g.platform} alt={fs.title} onZoom={() => setZoom(fs)} />}
               <div className="focus-txt">
                 <div className="step-no">Bước {focus + 1} / {steps.length}</div>

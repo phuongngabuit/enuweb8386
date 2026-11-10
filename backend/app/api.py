@@ -48,7 +48,8 @@ def meta():
         counts[c["platform"]] += 1; counts[c["platform"] + ":" + c["category"]] += 1
         counts["kind:" + c["kind"]] += 1
     return {"platforms": config.PLATFORMS, "categories": config.CATEGORIES, "counts": counts,
-            "support": config.SUPPORT, "ai": gemini.available(), "total": len(pub)}
+            "support": config.SUPPORT, "ai": gemini.available(), "total": len(pub),
+            "steps": sum(len(g["published"]["steps"]) for g in pub)}
 
 
 @public.get("/guides")

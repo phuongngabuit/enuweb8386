@@ -74,9 +74,19 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
   useEffect(() => { setPalette(false); if (!loc.hash) window.scrollTo(0, 0) }, [loc.pathname, loc.search])
+  useEffect(() => { // hiệu ứng "đèn rọi" theo con trỏ trên các thẻ .spot
+    const f = (e) => {
+      const t = e.target.closest?.('.spot'); if (!t) return
+      const r = t.getBoundingClientRect()
+      t.style.setProperty('--mx', `${e.clientX - r.left}px`); t.style.setProperty('--my', `${e.clientY - r.top}px`)
+    }
+    document.addEventListener('pointermove', f, { passive: true })
+    return () => document.removeEventListener('pointermove', f)
+  }, [])
   const studio = loc.pathname.startsWith('/studio')
   return (
     <MetaCtx.Provider value={meta}>
+      <div className={studio ? 'app' : 'app pub'}>
       {!studio && <Header onSearch={() => setPalette(true)} />}
       <main>
         <Routes>
@@ -94,6 +104,7 @@ export default function App() {
           <div className="palette"><SearchBox autoFocus /></div>
         </div>
       )}
+      </div>
     </MetaCtx.Provider>
   )
 }

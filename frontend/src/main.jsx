@@ -9,7 +9,10 @@ import '@fontsource/be-vietnam-pro/latin-400.css'
 import '@fontsource/be-vietnam-pro/latin-500.css'
 import '@fontsource/be-vietnam-pro/latin-600.css'
 import '@fontsource/be-vietnam-pro/latin-700.css'
+import '@fontsource/be-vietnam-pro/vietnamese-800.css'
+import '@fontsource/be-vietnam-pro/latin-800.css'
 import './styles.css'
+import './public.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(<BrowserRouter><App /></BrowserRouter>)

@@ -7,7 +7,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 84px; -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif; }
-#root { min-height: 100vh; display: flex; flex-direction: column; }
+.app { min-height: 100vh; display: flex; flex-direction: column; }
 main { flex: 1; }
 h1, h2, h3, h4 { line-height: 1.25; margin: 0; color: var(--navy); text-wrap: balance; }
 h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; letter-spacing: -.01em; }
@@ -146,7 +146,7 @@ code { font-size: .85em; background: #eef2f8; padding: 1px 6px; border-radius: 5
 .narrow-top { padding-top: 36px; } .narrow-top .wiz { margin-top: 20px; }
 
 /* Guide */
-.guide { padding-top: 22px; }
+.gband { padding-top: 22px; } .rbar { display: none; } .step-no small { font-size: inherit; }
 .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: .88rem; color: var(--muted); margin-bottom: 16px; }
 .ghead { display: grid; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
 .gbar { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 6px; font-size: .9rem; }

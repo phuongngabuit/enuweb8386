@@ -8,7 +8,7 @@ export function PlatformTag({ p }) {
 
 export default function GuideCard({ g, compact }) {
   return (
-    <Link to={guideUrl(g.slug)} className={`card gcard${compact ? ' compact' : ''}`}>
+    <Link to={guideUrl(g.slug)} className={`card gcard spot${compact ? ' compact' : ''}`}>
       {!compact && (
         <div className={`gthumb ${g.platform}`}>
           {g.thumb ? <img src={media(g.thumb)} alt="" loading="lazy" /> : <Icon name="book" size={36} />}

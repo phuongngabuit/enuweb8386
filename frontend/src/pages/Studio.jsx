@@ -172,7 +172,7 @@ function Editor({ id, onChanged, onDeleted }) {
       {msg?.err && <p className="err">{msg.err}</p>}
 
       {preview ? (
-        <div className="pv"><GuideView preview g={{ ...d, slug: g.slug, category_label: meta?.categories?.[d.category], related: [] }} /></div>
+        <div className="pv pub"><GuideView preview g={{ ...d, slug: g.slug, category_label: meta?.categories?.[d.category], related: [] }} /></div>
       ) : (
         <>
           {(src || g.ai) && (

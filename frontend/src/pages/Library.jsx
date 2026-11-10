@@ -28,6 +28,19 @@ export default function Library() {
   const c = meta?.counts || {}
   const catCount = (k) => (f.platform ? c[`${f.platform}:${k}`] || 0 : (c[`mobile:${k}`] || 0) + (c[`web:${k}`] || 0))
   return (
+    <>
+      <section className="band">
+        <div className="fx"><i /><i /></div>
+        <div className="wrap">
+          <span className="kicker">Thư viện</span>
+          <h1>Tất cả bài hướng dẫn</h1>
+          <div className="sb-field inline">
+            <Icon name="search" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm trong thư viện (gõ không dấu cũng được)" aria-label="Tìm trong thư viện" />
+            {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Xoá"><Icon name="x" size={18} /></button>}
+          </div>
+        </div>
+      </section>
     <div className="wrap lib">
       <aside className="filters" aria-label="Bộ lọc">
         <div className="fgroup">
@@ -48,12 +61,6 @@ export default function Library() {
         </div>
       </aside>
       <div className="lib-main">
-        <h1>Thư viện hướng dẫn</h1>
-        <div className="sb-field inline">
-          <Icon name="search" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm trong thư viện (gõ không dấu cũng được)" aria-label="Tìm trong thư viện" />
-          {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Xoá"><Icon name="x" size={18} /></button>}
-        </div>
         <p className="muted count-line">{items ? `${items.length} bài hướng dẫn` : 'Đang tải…'}
           {(f.platform || f.category || f.kind || f.q) && <button className="link" onClick={() => { setQ(''); setSp({}, { replace: true }) }}>Xoá bộ lọc</button>}
         </p>
@@ -61,5 +68,6 @@ export default function Library() {
         <div className="grid3">{items?.map((g) => <GuideCard key={g.slug} g={g} />)}</div>
       </div>
     </div>
+    </>
   )
 }

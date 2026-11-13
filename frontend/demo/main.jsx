@@ -49,6 +49,7 @@ function search(q, cards, limit = 8) {
 }
 function route(url, opts) {
   const u = new URL(url, 'http://x'); const p = u.pathname, q = u.searchParams
+  if (opts?.method === 'POST' && p === '/api/support') return { ok: true, code: 'HT-' + String(Math.floor(Math.random() * 1e6)).padStart(6, '0') }
   if (opts?.method === 'POST') return p === '/api/ask' ? { answer: '', cited: [], results: [], ai: false } : { ok: true }
   if (p === '/api/meta') return DATA.meta
   if (p === '/api/home') return DATA.home

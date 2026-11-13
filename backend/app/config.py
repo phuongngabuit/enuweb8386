@@ -5,6 +5,7 @@ from pathlib import Path
 DATA_DIR = Path(os.getenv("SF_DATA_DIR", "./data")).resolve()
 MEDIA_DIR = DATA_DIR / "media"
 TMP_DIR = DATA_DIR / "tmp"
+TICKETS_DIR = DATA_DIR / "tickets"   # ảnh chụp màn hình của yêu cầu hỗ trợ (riêng tư)
 DOCS_DIR = DATA_DIR / "docs"   # tài liệu cho người dùng tải về
 DB_PATH = DATA_DIR / "supportflow.db"
 STATIC_DIR = Path(os.getenv("SF_STATIC_DIR", Path(__file__).resolve().parents[2] / "frontend" / "dist"))
@@ -12,6 +13,13 @@ STATIC_DIR = Path(os.getenv("SF_STATIC_DIR", Path(__file__).resolve().parents[2]
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 EDITOR_TOKEN = os.getenv("EDITOR_TOKEN", "").strip()
+
+# Zalo Bot (tạo trong Zalo Bot Manager) — nhận thông báo khi có yêu cầu hỗ trợ mới
+ZALO_BOT_TOKEN = os.getenv("ZALO_BOT_TOKEN", "").strip()
+ZALO_CHAT_ID = os.getenv("ZALO_CHAT_ID", "").strip()
+ZALO_API_BASE = os.getenv("ZALO_API_BASE", "https://bot-api.zaloplatforms.com").rstrip("/")
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")   # ví dụ https://hotro.enumber.vn — cần để Zalo tải được ảnh
+MAX_SHOT_BYTES = 8 * 1024 * 1024
 
 PUBLIC_PORT = int(os.getenv("PUBLIC_PORT", "8080"))
 EDITOR_PORT = int(os.getenv("EDITOR_PORT", "8081"))
@@ -49,5 +57,5 @@ CATEGORIES = {
 
 
 def ensure_dirs():
-    for d in (DATA_DIR, MEDIA_DIR, TMP_DIR, DOCS_DIR):
+    for d in (DATA_DIR, MEDIA_DIR, TMP_DIR, DOCS_DIR, TICKETS_DIR):
         d.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { api, fmtDate, fmtSize, LEVELS } from '../api.js'
+import { api, editorToken, fmtDate, fmtSize, LEVELS } from '../api.js'
 import Icon from '../icons.jsx'
 
 /** Quản lý thông báo: soạn, ghim, hẹn ngày hết hạn, hiện/ẩn. */
@@ -125,4 +125,88 @@ function Confirm({ label, onYes }) {
   const [ask, setAsk] = useState(false)
   if (!ask) return <button className="btn ghost small danger" onClick={() => setAsk(true)}>{label}</button>
   return <span className="adm-confirm">Chắc chắn? <button className="btn small danger-solid" onClick={onYes}>Xoá hẳn</button><button className="btn ghost small" onClick={() => setAsk(false)}>Không</button></span>
+}
+
+
+const ST = { new: 'Mới', doing: 'Đang xử lý', done: 'Đã xong' }
+const fmtTime = (t) => new Date(t * 1000).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+
+/** Ảnh riêng tư: tải kèm mã biên tập rồi hiển thị bằng blob URL. */
+function ShotThumb({ id }) {
+  const [url, setUrl] = useState(null)
+  const [big, setBig] = useState(false)
+  useEffect(() => {
+    let u
+    fetch(`/editor/api/tickets/${id}/image`, { headers: { 'X-Editor-Token': editorToken.get() } }).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) { u = URL.createObjectURL(b); setUrl(u) } }).catch(() => {})
+    return () => u && URL.revokeObjectURL(u)
+  }, [id])
+  if (!url) return <span className="tk-shot empty"><Icon name="image" size={20} /></span>
+  return (<>
+    <button className="tk-shot" onClick={() => setBig(true)} aria-label="Xem ảnh chụp màn hình"><img src={url} alt="" /></button>
+    {big && <div className="overlay zoom" onClick={() => setBig(false)}><button className="icon-btn light" aria-label="Đóng"><Icon name="x" size={26} /></button><img src={url} alt="Ảnh chụp màn hình lỗi" /></div>}
+  </>)
+}
+
+/** Yêu cầu hỗ trợ người dùng gửi lên + trạng thái kết nối Zalo Bot. */
+export function TicketsAdmin() {
+  const [data, setData] = useState(null)
+  const [msg, setMsg] = useState(null)
+  const [chats, setChats] = useState(null)
+  const [filter, setFilter] = useState('open')
+  const load = () => api('/editor/api/tickets').then(setData).catch((e) => setMsg({ err: e.message }))
+  useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t) }, [])
+  if (!data) return <div className="st-empty muted">{msg?.err || 'Đang tải…'}</div>
+  const z = data.zalo
+  const run = async (fn, ok) => { setMsg(null); try { const r = await fn(); if (ok) setMsg({ ok }); load(); return r } catch (e) { setMsg({ err: e.message }) } }
+  const patch = (t, p) => run(() => api(`/editor/api/tickets/${t.id}`, { method: 'PUT', body: { status: t.status, note: t.note, ...p } }))
+  const list = data.tickets.filter((t) => (filter === 'open' ? t.status !== 'done' : filter === 'done' ? t.status === 'done' : true))
+  const zl = (v) => (v === 'sent' ? ['st-published', 'Đã gửi Zalo'] : v === 'off' ? ['', 'Zalo chưa bật'] : v === 'pending' ? ['', 'Đang gửi Zalo…'] : v.startsWith('sent-no-photo') ? ['fix', 'Đã gửi chữ, ảnh lỗi'] : ['fix', 'Gửi Zalo lỗi'])
+  return (
+    <div className="ed">
+      <h2 className="adm-h"><Icon name="chat" size={22} /> Yêu cầu hỗ trợ</h2>
+      <div className={`card zalo ${z.token && z.chat_id ? 'on' : 'off'}`}>
+        <div className="grow">
+          <b>{z.token && z.chat_id ? 'Zalo Bot đã cấu hình' : 'Zalo Bot chưa cấu hình xong'}</b>
+          <p className="muted">
+            {!z.token ? 'Thiếu ZALO_BOT_TOKEN trong tệp .env. Tạo bot trong Zalo Bot Manager rồi chép Bot Token vào.'
+              : !z.chat_id ? 'Thiếu ZALO_CHAT_ID. Nhắn một tin cho bot trên Zalo, bấm “Tìm chat_id”, chép mã vào .env rồi khởi động lại.'
+                : z.photo ? 'Yêu cầu mới được gửi vào Zalo kèm ảnh chụp màn hình.' : 'Yêu cầu mới được gửi vào Zalo dạng chữ. Đặt PUBLIC_BASE_URL trong .env để gửi kèm ảnh.'}
+          </p>
+          {chats && (chats.length ? <ul className="zalo-chats">{chats.map((c, i) => <li key={i}><code>{c.chat_id}</code> {c.name} {c.text && <span className="muted">· “{c.text}”</span>}</li>)}</ul>
+            : <p className="muted">Chưa thấy tin nhắn mới nào gửi tới bot. Hãy nhắn cho bot rồi bấm lại.</p>)}
+        </div>
+        <div className="adm-btns">
+          {z.token && <button className="btn ghost small" onClick={async () => setChats(await run(() => api('/editor/api/zalo/chats')) || null)}>Tìm chat_id</button>}
+          {z.token && z.chat_id && <button className="btn ghost small" onClick={() => run(() => api('/editor/api/zalo/test', { method: 'POST' }), 'Đã gửi tin thử vào Zalo.')}>Gửi tin thử</button>}
+        </div>
+      </div>
+      {msg?.ok && <p className="okmsg"><Icon name="check" size={16} /> {msg.ok}</p>}{msg?.err && <p className="err">{msg.err}</p>}
+      <div className="seg" role="tablist">{[['open', 'Chưa xong'], ['done', 'Đã xong'], ['all', 'Tất cả']].map(([k, l]) => <button key={k} role="tab" aria-selected={filter === k} className={filter === k ? 'on' : ''} onClick={() => setFilter(k)}>{l}{k === 'open' ? ` (${data.tickets.filter((t) => t.status !== 'done').length})` : ''}</button>)}</div>
+      {list.length === 0 && <p className="muted">Không có yêu cầu nào trong mục này.</p>}
+      {list.map((t) => {
+        const [zc, zt] = zl(t.zalo)
+        return (
+          <div key={t.id} className={`card adm-row tk ${t.status}`}>
+            {t.image ? <ShotThumb id={t.id} /> : <span className="tk-shot empty" title="Không có ảnh"><Icon name="image" size={20} /></span>}
+            <div className="grow">
+              <div className="adm-tags">
+                <span className={`tag tk-${t.status}`}>{ST[t.status]}</span><b>{t.code}</b>
+                <span className="muted">{fmtTime(t.created_at)}</span>
+                <span className={`tag ${zc}`} title={t.zalo}>{zt}</span>
+              </div>
+              <a className="tk-phone" href={`tel:${t.phone}`}><Icon name="phone" size={16} /> {t.phone}</a>
+              <p>{t.content}</p>
+              {t.page && <p className="muted">Gửi từ trang: {t.page}</p>}
+              <input className="tk-note" defaultValue={t.note} placeholder="Ghi chú xử lý (chỉ nội bộ thấy)" aria-label="Ghi chú xử lý" onBlur={(e) => e.target.value !== t.note && patch(t, { note: e.target.value })} />
+            </div>
+            <div className="adm-btns">
+              <select value={t.status} aria-label="Trạng thái" onChange={(e) => patch(t, { status: e.target.value })}>{Object.entries(ST).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
+              {t.zalo !== 'sent' && z.token && z.chat_id && <button className="btn ghost small" onClick={() => run(() => api(`/editor/api/tickets/${t.id}/resend`, { method: 'POST' }))}>Gửi lại Zalo</button>}
+              <Confirm label="Xoá" onYes={() => run(() => api(`/editor/api/tickets/${t.id}`, { method: 'DELETE' }))} />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
 }

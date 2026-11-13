@@ -25,6 +25,7 @@ const P = {
   download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
   file: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
   pin: 'M9 4h6l-1 6 3 3H7l3-3zM12 13v7',
+  chat: 'M4 5h16v11H10l-5 4v-4H4z',
   book: 'M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19V5',
 }
 export default function Icon({ name, size = 20, ...rest }) {

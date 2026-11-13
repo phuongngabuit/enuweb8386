@@ -13,7 +13,10 @@ from pathlib import Path
 from fastapi import APIRouter, Body, Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import config, db, media, seed
+import re
+import secrets
+
+from . import config, db, media, seed, zalo
 from .importer import gemini, pipeline
 from .importer.extract import ImportError_
 from .search import card, search
@@ -158,6 +161,51 @@ def document_download(did: str, request: Request):
         raise HTTPException(404, "Không tìm thấy tài liệu.")
     db.doc_bump(did)
     return FileResponse(f, media_type=DOC_TYPES[d["ext"]], filename=d["filename"])
+
+
+PHONE_RE = re.compile(r"^(0|\+?84)\d{9}$")
+
+
+def _notify(tid):
+    t = db.ticket_get(tid)
+    if t:
+        db.ticket_update(tid, zalo=zalo.send_ticket(t))
+
+
+@public.post("/support")
+async def support(request: Request, phone: str = Form(...), content: str = Form(...), page: str = Form(""),
+                  website: str = Form(""), image: UploadFile | None = File(None)):
+    """Điểm ghi duy nhất trên cổng công khai: nhận yêu cầu hỗ trợ. Giới hạn tần suất, kiểm tra dữ liệu, ảnh được giải mã lại."""
+    if website:  # ô bẫy bot — người thật không nhìn thấy nên không điền
+        return {"ok": True, "code": "HT-000000"}
+    phone = re.sub(r"[\s.\-()]", "", phone)
+    if not PHONE_RE.match(phone):
+        raise HTTPException(400, "Số điện thoại chưa đúng. Ví dụ: 0912345678.")
+    content = content.strip()
+    if len(content) < 10:
+        raise HTTPException(400, "Hãy mô tả vấn đề ít nhất 10 ký tự để chúng tôi hỗ trợ đúng.")
+    rate_limit(request, "support", 5, 3600)
+    tid, fname, token = uuid.uuid4().hex[:12], None, None
+    if image is not None and image.filename:
+        data = await image.read(config.MAX_SHOT_BYTES + 1)
+        if len(data) > config.MAX_SHOT_BYTES:
+            raise HTTPException(413, "Ảnh vượt quá 8 MB.")
+        if not media.save_shot(data, config.TICKETS_DIR / f"{tid}.jpg"):
+            raise HTTPException(400, "Không đọc được ảnh. Hãy chọn tệp ảnh PNG hoặc JPG.")
+        fname, token = f"{tid}.jpg", secrets.token_hex(16)
+    code = "HT-" + f"{secrets.randbelow(10**6):06d}"
+    t = db.ticket_create(tid, code, phone, content[:2000], page.strip()[:200], fname, token)
+    threading.Thread(target=_notify, args=(tid,), daemon=True).start()
+    return {"ok": True, "code": t["code"]}
+
+
+@public.get("/support/image/{token}.jpg")
+def support_image(token: str):
+    """Chỉ dùng cho Zalo tải ảnh: cần đúng mã ngẫu nhiên 32 ký tự của từng ảnh."""
+    t = db.ticket_get(token=token) if re.fullmatch(r"[0-9a-f]{32}", token) else None
+    if not t or not t["image"]:
+        raise HTTPException(404)
+    return FileResponse(config.TICKETS_DIR / t["image"], media_type="image/jpeg", headers={"Cache-Control": "private, no-store"})
 
 
 ASK_SYSTEM = """Bạn là trợ lý hỗ trợ của phần mềm ENumber Chấm Công. Trả lời câu hỏi của người dùng bằng tiếng Việt, ngắn gọn (tối đa 4 câu), lịch sự.
@@ -352,6 +400,75 @@ def e_job(jid: str):
     if not j:
         raise HTTPException(404)
     return j
+
+
+# ---- yêu cầu hỗ trợ + Zalo
+@editor.get("/tickets")
+def e_tickets():
+    return {"tickets": db.ticket_list(),
+            "zalo": {"token": bool(config.ZALO_BOT_TOKEN), "chat_id": bool(config.ZALO_CHAT_ID), "photo": bool(config.PUBLIC_BASE_URL)}}
+
+
+@editor.put("/tickets/{tid}")
+def e_ticket_update(tid: str, data: dict = Body(...)):
+    if not db.ticket_get(tid):
+        raise HTTPException(404)
+    status = data.get("status") if data.get("status") in ("new", "doing", "done") else "new"
+    return db.ticket_update(tid, status=status, note=str(data.get("note") or "")[:1000])
+
+
+@editor.get("/tickets/{tid}/image")
+def e_ticket_image(tid: str):
+    t = db.ticket_get(tid)
+    if not t or not t["image"]:
+        raise HTTPException(404)
+    return FileResponse(config.TICKETS_DIR / t["image"], media_type="image/jpeg")
+
+
+@editor.post("/tickets/{tid}/resend")
+def e_ticket_resend(tid: str):
+    t = db.ticket_get(tid)
+    if not t:
+        raise HTTPException(404)
+    return db.ticket_update(tid, zalo=zalo.send_ticket(t))
+
+
+@editor.delete("/tickets/{tid}")
+def e_ticket_delete(tid: str):
+    t = db.ticket_get(tid)
+    if not t:
+        raise HTTPException(404)
+    db.ticket_delete(tid)
+    if t["image"]:
+        (config.TICKETS_DIR / t["image"]).unlink(missing_ok=True)
+    return {"ok": True}
+
+
+@editor.post("/zalo/test")
+def e_zalo_test():
+    if not zalo.configured():
+        raise HTTPException(400, "Cần đặt ZALO_BOT_TOKEN và ZALO_CHAT_ID trong tệp .env rồi khởi động lại.")
+    try:
+        zalo.call("sendMessage", {"chat_id": config.ZALO_CHAT_ID, "text": "✅ SupportFlow đã kết nối với Zalo Bot. Yêu cầu hỗ trợ mới sẽ được gửi vào đây."})
+    except RuntimeError as e:
+        raise HTTPException(502, str(e))
+    return {"ok": True}
+
+
+@editor.get("/zalo/chats")
+def e_zalo_chats():
+    """Tìm chat_id: nhắn một tin bất kỳ cho bot trên Zalo rồi bấm nút này."""
+    try:
+        res = zalo.call("getUpdates", {"timeout": 5}, timeout=15)
+    except RuntimeError as e:
+        raise HTTPException(502, str(e))
+    out = []
+    for u in (res if isinstance(res, list) else [res]):
+        m = (u or {}).get("message") or {}
+        chat = m.get("chat") or {}
+        if chat.get("id"):
+            out.append({"chat_id": str(chat["id"]), "name": (m.get("from") or {}).get("display_name") or chat.get("title") or "", "text": str(m.get("text") or "")[:60]})
+    return out
 
 
 # ---- thông báo

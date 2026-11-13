@@ -11,6 +11,7 @@ import Fix from './pages/Fix.jsx'
 import Studio from './pages/Studio.jsx'
 import News from './pages/News.jsx'
 import Docs from './pages/Docs.jsx'
+import Support from './pages/Support.jsx'
 
 const MetaCtx = createContext(null)
 export const useMeta = () => useContext(MetaCtx)
@@ -109,11 +110,15 @@ export default function App() {
           <Route path="/khac-phuc-loi" element={<Fix />} />
           <Route path="/thong-bao" element={<News />} />
           <Route path="/tai-lieu" element={<Docs />} />
+          <Route path="/ho-tro" element={<Support />} />
           <Route path="/studio/*" element={<Studio />} />
           <Route path="*" element={<div className="wrap empty"><h1>Không tìm thấy trang</h1><Link className="btn" to="/">Về trang chủ</Link></div>} />
         </Routes>
       </main>
       {!studio && <Footer meta={meta} />}
+      {!studio && loc.pathname !== '/ho-tro' && (
+        <Link to="/ho-tro" state={{ from: loc.pathname }} className="fab"><Icon name="chat" size={20} /><span>Gửi yêu cầu hỗ trợ</span></Link>
+      )}
       {palette && (
         <div className="overlay top" onMouseDown={(e) => e.target === e.currentTarget && setPalette(false)}>
           <div className="palette"><SearchBox autoFocus /></div>

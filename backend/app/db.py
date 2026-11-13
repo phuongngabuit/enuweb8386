@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS announcements(
 CREATE TABLE IF NOT EXISTS documents(
   id TEXT PRIMARY KEY, title TEXT, description TEXT, platform TEXT, filename TEXT, ext TEXT, size INTEGER,
   published INTEGER, downloads INTEGER NOT NULL DEFAULT 0, created_at REAL);
+CREATE TABLE IF NOT EXISTS tickets(
+  id TEXT PRIMARY KEY, code TEXT, phone TEXT, content TEXT, page TEXT, image TEXT, image_token TEXT,
+  status TEXT, note TEXT, zalo TEXT, created_at REAL, updated_at REAL);
 CREATE TABLE IF NOT EXISTS feedback(
   guide_id TEXT, helpful INTEGER, reason TEXT, created_at REAL);
 """
@@ -311,3 +314,35 @@ def doc_delete(did):
 def doc_bump(did):
     with conn() as c:
         c.execute("UPDATE documents SET downloads=downloads+1 WHERE id=?", (did,))
+
+
+# ---- yêu cầu hỗ trợ ----
+def ticket_create(tid, code, phone, content, page, image, image_token):
+    now = time.time()
+    with conn() as c:
+        c.execute("INSERT INTO tickets VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                  (tid, code, phone, content, page, image, image_token, "new", "", "pending", now, now))
+    return ticket_get(tid)
+
+
+def ticket_get(tid=None, token=None):
+    with conn() as c:
+        r = c.execute("SELECT * FROM tickets WHERE " + ("id=?" if tid else "image_token=?"), (tid or token,)).fetchone()
+    return dict(r) if r else None
+
+
+def ticket_list():
+    with conn() as c:
+        return [dict(r) for r in c.execute("SELECT * FROM tickets ORDER BY created_at DESC LIMIT 300")]
+
+
+def ticket_update(tid, **kw):
+    kw["updated_at"] = time.time()
+    with conn() as c:
+        c.execute(f"UPDATE tickets SET {', '.join(k + '=?' for k in kw)} WHERE id=?", list(kw.values()) + [tid])
+    return ticket_get(tid)
+
+
+def ticket_delete(tid):
+    with conn() as c:
+        c.execute("DELETE FROM tickets WHERE id=?", (tid,))

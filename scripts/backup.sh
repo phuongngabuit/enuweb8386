@@ -7,7 +7,7 @@ STAMP=$(date +%Y%m%d-%H%M%S)
 # Chụp SQLite an toàn (không sao chép tệp đang ghi dở)
 docker compose exec -T supportflow python -c "
 import sqlite3; s=sqlite3.connect('/data/supportflow.db'); d=sqlite3.connect('/data/backup.db'); s.backup(d); d.close(); s.close()"
-tar -czf "backups/supportflow-$STAMP.tar.gz" -C data backup.db media $( [ -d data/docs ] && echo docs ) $( [ -f data/symptoms.json ] && echo symptoms.json )
+tar -czf "backups/supportflow-$STAMP.tar.gz" -C data backup.db media $( [ -d data/docs ] && echo docs ) $( [ -d data/tickets ] && echo tickets ) $( [ -f data/symptoms.json ] && echo symptoms.json )
 rm -f data/backup.db
 # Giữ 30 bản gần nhất
 ls -1t backups/supportflow-*.tar.gz | tail -n +31 | xargs -r rm -f

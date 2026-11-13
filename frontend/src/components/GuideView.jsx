@@ -23,7 +23,7 @@ function Feedback({ slug, preview }) {
   const [state, setState] = useState('ask')
   const send = (helpful, reason = '') => {
     if (!preview) api(`/api/guides/${slug}/feedback`, { method: 'POST', body: { helpful, reason } }).catch(() => {})
-    setState(helpful || reason ? 'done' : 'why')
+    setState(helpful ? 'done' : reason ? 'sent' : 'why')
   }
   return (
     <div className="card fb" aria-live="polite">
@@ -39,9 +39,15 @@ function Feedback({ slug, preview }) {
         <div className="fb-btns wrapb">
           {REASONS.map(([k, l]) => <button key={k} className="btn ghost" onClick={() => send(false, k)}>{l}</button>)}
         </div>
-        <p className="muted">Bạn có thể thử <Link to="/khac-phuc-loi">chẩn đoán theo triệu chứng</Link> hoặc xem <a href="#ho-tro">thông tin hỗ trợ kỹ thuật</a>.</p>
+        {!preview && <Link className="btn" to="/ho-tro" state={{ from: `/huong-dan/${slug}` }}><Icon name="chat" size={18} /> Gửi yêu cầu hỗ trợ</Link>}
+        <p className="muted">Hoặc thử <Link to="/khac-phuc-loi">chẩn đoán theo triệu chứng</Link>.</p>
       </>)}
       {state === 'done' && <h3><Icon name="check" size={20} /> Cảm ơn bạn đã phản hồi.</h3>}
+      {state === 'sent' && (<>
+        <h3><Icon name="check" size={20} /> Cảm ơn bạn đã phản hồi.</h3>
+        <p className="muted">Vẫn chưa xử lý được? Kỹ thuật viên có thể gọi lại cho bạn.</p>
+        {!preview && <Link className="btn" to="/ho-tro" state={{ from: `/huong-dan/${slug}` }}><Icon name="chat" size={18} /> Gửi yêu cầu hỗ trợ</Link>}
+      </>)}
     </div>
   )
 }

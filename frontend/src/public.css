@@ -61,6 +61,14 @@
 .pub .doc-ext { border-radius: 14px; box-shadow: 0 8px 18px -8px rgba(11, 21, 51, .5); } .pub .seg { border-radius: 16px; } .pub .seg button.on { background: linear-gradient(100deg, #2f6bff, #6d5cf6); }
 .pub .page-narrow { padding-top: 40px; }
 
+.pub .fab { background: linear-gradient(100deg, #2f6bff, #8b5cf6); box-shadow: 0 14px 36px -6px rgba(47, 107, 255, .75), 0 0 0 1px rgba(255, 255, 255, .18) inset; transition: transform .25s var(--ease), box-shadow .25s; }
+.pub .fab:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 20px 44px -6px rgba(47, 107, 255, .9), 0 0 0 1px rgba(255, 255, 255, .3) inset; }
+.pub .fab::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border: 2px solid #6d8cff; animation: ping 2.6s var(--ease) infinite; pointer-events: none; }
+.pub .sp { padding-top: 0; } .pub .sp-form, .pub .sp-done { margin-top: -28px; position: relative; z-index: 2; padding: 32px; box-shadow: 0 30px 70px -40px rgba(11, 21, 51, .45); } .pub .sp-side { padding-top: 32px; }
+.pub .sp-send { background: var(--grad); background-size: 180% 100%; animation: sheen 5s ease-in-out infinite alternate; } .pub .sp-drop { border-radius: 20px; transition: background .2s, border-color .2s, transform .25s var(--ease); } .pub .sp-drop:hover { transform: translateY(-2px); }
+.pub .sp-drop-ico { color: var(--blue); } .pub .sp-done strong { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pub .sp-steps a:hover { background: none; padding-left: 0; }
+
 /* Hero */
 .hero2 { position: relative; background: var(--ink); color: #fff; padding-top: 64px; isolation: isolate; }
 .hero2-in { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 36px; align-items: center; padding-bottom: 56px; position: relative; z-index: 2; }
@@ -277,6 +285,7 @@
   .pub .toc { border-radius: 22px; padding: 18px; } .pub .toc ol::before { display: none; }
 }
 @media (max-width: 760px) {
+  .pub .sp-form, .pub .sp-done { padding: 22px; } .pub .sp-side { padding-top: 0; }
   .hero2 { padding-top: 34px; } .hero2 .fx i { opacity: .3; filter: blur(70px); } .hero2 .fx i:nth-child(1) { width: 320px; height: 320px; left: -140px; top: -160px; } .hero2 .fx i:nth-child(2) { width: 300px; height: 300px; right: -160px; top: 300px; }
   .pub .sb.big .sb-hints button:nth-of-type(n+4) { display: none; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); } .stats span { font-size: .76rem; line-height: 1.35; }

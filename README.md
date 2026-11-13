@@ -61,13 +61,32 @@ Container có `restart: unless-stopped` nên tự chạy lại sau sự cố ho�
 Trong `.env` đặt `EDITOR_BIND=0.0.0.0` **và** một `EDITOR_TOKEN` dài, ngẫu nhiên (`openssl rand -hex 24`), rồi `docker compose up -d`.
 Không chuyển tiếp (port-forward) cổng 8081 ra Internet. Nếu đưa website ra Internet, chỉ công bố cổng 8080 qua reverse proxy có HTTPS.
 
-## Studio có ba mục
+## Studio có bốn mục
 
 | Mục | Dùng để |
 |---|---|
 | Hướng dẫn | AI Import DOCX/PDF/MP4 thành bài từng bước, sửa, xem trước, xuất bản. |
 | Tài liệu | Tải PDF/DOCX/XLSX/PPTX lên để người dùng **tải về nguyên tệp** (trang `/tai-lieu`). Ẩn/hiện, xoá, xem lượt tải. |
+| Yêu cầu | Xem yêu cầu hỗ trợ người dùng gửi (SĐT, nội dung, ảnh chụp màn hình), đổi trạng thái, ghi chú, gửi lại Zalo. |
 | Thông báo | Soạn thông báo (Thông tin / Cập nhật / Quan trọng), ghim, hẹn ngày tự ẩn. Hiện ở đầu trang chủ, chuông trên thanh điều hướng và trang `/thong-bao`. |
+
+## Yêu cầu hỗ trợ và Zalo Bot
+
+Người dùng gửi yêu cầu tại trang `/ho-tro` (nút nổi ở mọi trang): số điện thoại, nội dung, và nút chèn ảnh chụp màn hình lỗi (chọn tệp, kéo thả hoặc dán Ctrl+V). Mỗi yêu cầu được lưu vào Studio và gửi ngay vào Zalo.
+
+Kết nối Zalo Bot (làm một lần):
+
+1. Trên Zalo, tìm và mở **Zalo Bot Manager**, tạo bot mới, chép **Bot Token**.
+2. Mở `.env`, điền `ZALO_BOT_TOKEN=...`, chạy `docker compose up -d`.
+3. Dùng tài khoản Zalo sẽ nhận thông báo, **nhắn một tin bất kỳ cho bot**.
+4. Vào Studio > Yêu cầu > **Tìm chat_id**, chép mã hiện ra vào `ZALO_CHAT_ID=...` trong `.env`, chạy lại `docker compose up -d`.
+5. Bấm **Gửi tin thử**. Thấy tin trong Zalo là xong.
+
+Muốn Zalo nhận cả ảnh: đặt `PUBLIC_BASE_URL=https://ten-mien-cua-ban` (Zalo phải tải được ảnh từ Internet qua HTTPS). Không đặt thì Zalo chỉ nhận chữ, ảnh xem trong Studio.
+
+Lưu ý: "Tìm chat_id" dùng `getUpdates`, không chạy được nếu bot đang bật webhook. Máy chủ phải truy cập được `bot-api.zaloplatforms.com`. Nếu Zalo lỗi, yêu cầu vẫn được lưu và có nút **Gửi lại Zalo**.
+
+Bảo vệ: tối đa 5 yêu cầu/giờ mỗi địa chỉ IP, ảnh ≤ 8 MB và được giải mã lại, có ô bẫy bot. Số điện thoại và ảnh chỉ xem được ở cổng Studio.
 
 ## Quy trình biên tập
 

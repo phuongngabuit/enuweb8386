@@ -47,3 +47,18 @@ def signature(path) -> bytes:
 def sig_diff(a: bytes, b: bytes) -> float:
     """Phần trăm số ô (lưới 32x32) thay đổi rõ rệt giữa hai khung hình."""
     return 100 * sum(1 for x, y in zip(a, b) if abs(x - y) > 20) / len(a)
+
+
+def save_shot(data: bytes, dest) -> bool:
+    """Ảnh chụp màn hình người dùng gửi: giải mã lại, bỏ metadata, lưu JPEG."""
+    try:
+        im = Image.open(io.BytesIO(data)); im.load()
+    except Exception:
+        return False
+    if im.width < 40 or im.height < 40:
+        return False
+    im = im.convert("RGB")
+    if max(im.size) > 2000:
+        k = 2000 / max(im.size); im = im.resize((round(im.width * k), round(im.height * k)), Image.LANCZOS)
+    im.save(dest, "JPEG", quality=85)
+    return True

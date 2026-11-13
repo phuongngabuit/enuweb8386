@@ -18,7 +18,7 @@ export async function api(path, { method = 'GET', body, form } = {}) {
   return res.json()
 }
 
-export const media = (file) => (file ? `/media/${file}` : null)
+export const media = (file) => (file ? (window.__SF_MEDIA?.[file] || `/media/${file}`) : null)
 export const fmtTs = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 export const fmtDate = (t) => (t ? new Date(t * 1000).toLocaleDateString('vi-VN') : '')
 export const guideUrl = (slug, step) => `/huong-dan/${slug}${step != null ? `#buoc-${step + 1}` : ''}`

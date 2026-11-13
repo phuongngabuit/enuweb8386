@@ -13,6 +13,8 @@ const MetaCtx = createContext(null)
 export const useMeta = () => useContext(MetaCtx)
 
 function Header({ onSearch }) {
+  const loc = useLocation()
+  const isP = (p) => loc.pathname === '/huong-dan' && new URLSearchParams(loc.search).get('platform') === p
   return (
     <header className="hdr">
       <div className="wrap hdr-in">
@@ -33,7 +35,6 @@ function Header({ onSearch }) {
     </header>
   )
 }
-const isP = (p) => location.pathname === '/huong-dan' && new URLSearchParams(location.search).get('platform') === p
 
 function Footer({ meta }) {
   const s = meta?.support || {}

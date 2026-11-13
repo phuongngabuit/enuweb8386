@@ -1,0 +1,7 @@
+/* Điều chỉnh riêng cho bản xem thử nhúng trong khung artifact */
+body { background: #f3f5fb; color: #14233a; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.pub .hdr { top: env(safe-area-inset-top, 0px); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: #060a1c; }
+.focus, .overlay { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.ftr-in::after { content: "Bản xem thử tĩnh · nội dung và hình minh hoạ là dữ liệu mẫu"; grid-column: 1 / -1; font-size: .8rem; color: #7f8fb8; }

@@ -9,12 +9,16 @@ import Library from './pages/Library.jsx'
 import Guide from './pages/Guide.jsx'
 import Fix from './pages/Fix.jsx'
 import Studio from './pages/Studio.jsx'
+import News from './pages/News.jsx'
+import Docs from './pages/Docs.jsx'
 
 const MetaCtx = createContext(null)
 export const useMeta = () => useContext(MetaCtx)
 
 function Header({ onSearch }) {
   const loc = useLocation()
+  const [news, setNews] = useState(0)
+  useEffect(() => { api('/api/announcements').then((r) => setNews(r.length)).catch(() => {}) }, [])
   const isP = (p) => loc.pathname === '/huong-dan' && new URLSearchParams(loc.search).get('platform') === p
   return (
     <header className="hdr">
@@ -28,7 +32,11 @@ function Header({ onSearch }) {
           <NavLink to="/huong-dan?platform=mobile" className={() => (isP('mobile') ? 'active' : '')}>Hướng dẫn Mobile</NavLink>
           <NavLink to="/huong-dan?platform=web" className={() => (isP('web') ? 'active' : '')}>Hướng dẫn Web</NavLink>
           <NavLink to="/khac-phuc-loi">Khắc phục lỗi</NavLink>
+          <NavLink to="/tai-lieu">Tài liệu</NavLink>
         </nav>
+        <Link to="/thong-bao" className="bell" aria-label={`Thông báo${news ? ` (${news} tin)` : ''}`}>
+          <Icon name="bell" size={19} />{news > 0 && <i>{news}</i>}
+        </Link>
         <button className="kbtn" onClick={onSearch} aria-label="Tìm kiếm nhanh">
           <Icon name="search" size={16} /><span>Tìm nhanh</span><kbd>Ctrl K</kbd>
         </button>
@@ -99,6 +107,8 @@ export default function App() {
           <Route path="/huong-dan" element={<Library />} />
           <Route path="/huong-dan/:slug" element={<Guide />} />
           <Route path="/khac-phuc-loi" element={<Fix />} />
+          <Route path="/thong-bao" element={<News />} />
+          <Route path="/tai-lieu" element={<Docs />} />
           <Route path="/studio/*" element={<Studio />} />
           <Route path="*" element={<div className="wrap empty"><h1>Không tìm thấy trang</h1><Link className="btn" to="/">Về trang chủ</Link></div>} />
         </Routes>

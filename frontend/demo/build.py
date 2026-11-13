@@ -17,7 +17,7 @@ for g in guides.values():
 sys.path.insert(0, str(here.parents[1] / "backend"))
 from app.textnorm import SYNONYMS
 meta = get("/api/meta"); meta["ai"] = False
-(here / "data.json").write_text(json.dumps({"meta": meta, "home": get("/api/home"), "symptoms": get("/api/symptoms"),
+(here / "data.json").write_text(json.dumps({"meta": meta, "home": get("/api/home"), "announcements": get("/api/announcements"), "documents": get("/api/documents"), "symptoms": get("/api/symptoms"),
     "cards": cards, "guides": guides, "media": media, "synonyms": SYNONYMS}, ensure_ascii=False))
 js = subprocess.run(["npx", "esbuild", "demo/main.jsx", "--bundle", "--minify", "--format=iife", "--jsx=automatic", "--target=es2020",
     "--alias:react=./demo/shim-react.cjs", "--alias:react-dom=./demo/shim-dom.cjs", "--alias:react-dom/client=./demo/shim-dom.cjs",

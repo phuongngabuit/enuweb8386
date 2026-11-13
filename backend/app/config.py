@@ -5,6 +5,7 @@ from pathlib import Path
 DATA_DIR = Path(os.getenv("SF_DATA_DIR", "./data")).resolve()
 MEDIA_DIR = DATA_DIR / "media"
 TMP_DIR = DATA_DIR / "tmp"
+DOCS_DIR = DATA_DIR / "docs"   # tài liệu cho người dùng tải về
 DB_PATH = DATA_DIR / "supportflow.db"
 STATIC_DIR = Path(os.getenv("SF_STATIC_DIR", Path(__file__).resolve().parents[2] / "frontend" / "dist"))
 
@@ -48,5 +49,5 @@ CATEGORIES = {
 
 
 def ensure_dirs():
-    for d in (DATA_DIR, MEDIA_DIR, TMP_DIR):
+    for d in (DATA_DIR, MEDIA_DIR, TMP_DIR, DOCS_DIR):
         d.mkdir(parents=True, exist_ok=True)

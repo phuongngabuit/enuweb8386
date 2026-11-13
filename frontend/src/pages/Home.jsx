@@ -8,6 +8,7 @@ import GuideCard, { PlatformTag } from '../components/GuideCard.jsx'
 import Wizard from '../components/Wizard.jsx'
 import HeroPhone from '../components/HeroPhone.jsx'
 import Reveal from '../components/Reveal.jsx'
+import { NewsItem, DocRow } from '../components/Feed.jsx'
 
 const ASKS = ['Quên mật khẩu đăng nhập', 'Chấm công không nhận khuôn mặt', 'Báo ngoài phạm vi chấm công', 'Xuất bảng công ra Excel',
   'Đăng ký khuôn mặt lần đầu', 'Tạo đơn công tác', 'Duyệt đơn nghỉ phép', 'Cài ứng dụng trên điện thoại']
@@ -38,6 +39,9 @@ export default function Home() {
   const meta = useMeta()
   const [home, setHome] = useState(null)
   const hero = useRef(null)
+  const [news, setNews] = useState([])
+  const [docs, setDocs] = useState([])
+  useEffect(() => { api('/api/announcements').then(setNews).catch(() => {}); api('/api/documents').then(setDocs).catch(() => {}) }, [])
   useEffect(() => { api('/api/home').then(setHome).catch(() => setHome({ popular: [], fixes: [], beginner: [] })) }, [])
   const cats = (p) => Object.entries(meta?.categories || {}).filter(([k]) => meta.counts[`${p}:${k}`])
   const tilt = (e) => {
@@ -49,6 +53,11 @@ export default function Home() {
     <>
       <section className="hero2" ref={hero} onPointerMove={tilt}>
         <div className="fx"><i /><i /><i /></div>
+        {news[0] && (
+          <div className="wrap"><Link to="/thong-bao" className={`abar ${news[0].level}`}>
+            <span><Icon name="bell" size={15} /> Thông báo</span><b>{news[0].title}</b><Icon name="arrow" size={16} />
+          </Link></div>
+        )}
         <div className="wrap hero2-in">
           <div className="hero2-copy">
             <span className="pill"><Icon name="sparkle" size={15} /> Trung tâm hướng dẫn · ENumber Chấm Công</span>
@@ -108,6 +117,23 @@ export default function Home() {
             </Reveal>
           )}
         </div>
+
+        {(news.length > 0 || docs.length > 0) && (
+          <section className="sec2 duo">
+            {news.length > 0 && (
+              <div>
+                <Head kicker="Mới nhất" title="Thông báo" to="/thong-bao" />
+                <div className="feed">{news.slice(0, 3).map((a) => <NewsItem key={a.id} a={a} compact />)}</div>
+              </div>
+            )}
+            {docs.length > 0 && (
+              <div>
+                <Head kicker="Tải về" title="Tài liệu" to="/tai-lieu" />
+                <div className="feed">{docs.slice(0, 4).map((d) => <DocRow key={d.id} d={d} />)}</div>
+              </div>
+            )}
+          </section>
+        )}
 
         {home?.popular.length > 0 && (
           <section className="sec2">

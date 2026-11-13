@@ -53,6 +53,8 @@ function route(url, opts) {
   if (p === '/api/meta') return DATA.meta
   if (p === '/api/home') return DATA.home
   if (p === '/api/symptoms') return DATA.symptoms
+  if (p === '/api/announcements') return DATA.announcements
+  if (p === '/api/documents') return DATA.documents
   if (p === '/api/search') return search(q.get('q') || '', DATA.cards)
   if (p === '/api/guides') {
     const cards = DATA.cards.filter((c) => (!q.get('platform') || c.platform === q.get('platform')) && (!q.get('category') || c.category === q.get('category')) && (!q.get('kind') || c.kind === q.get('kind')))
@@ -66,4 +68,9 @@ window.fetch = async (url, opts) => {
   const data = typeof url === 'string' && (url.startsWith('/api') || url.startsWith('/editor')) ? route(url, opts) : null
   return new Response(JSON.stringify(data ?? { detail: 'Không khả dụng trong bản xem thử.' }), { status: data ? 200 : 404, headers: { 'Content-Type': 'application/json' } })
 }
+// Bản xem thử không có máy chủ nên không tải tệp được: chặn liên kết và báo ngay tại chỗ.
+document.addEventListener('click', (e) => {
+  const a = e.target.closest?.('a.doc'); if (!a) return
+  e.preventDefault(); const em = a.querySelector('.doc-txt em'); if (em) em.textContent = 'Bản xem thử: chỉ tải được trên máy chủ thật.'
+}, true)
 createRoot(document.getElementById('root')).render(<MemoryRouter><App /></MemoryRouter>)

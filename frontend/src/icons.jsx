@@ -21,6 +21,10 @@ const P = {
   eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   plus: 'M12 5v14M5 12h14',
   image: 'M4 4h16v16H4zM4 15l4-4 5 5 3-3 4 4M9 9h.01',
+  bell: 'M6 9a6 6 0 0112 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 004 0',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  file: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
+  pin: 'M9 4h6l-1 6 3 3H7l3-3zM12 13v7',
   book: 'M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19V5',
 }
 export default function Icon({ name, size = 20, ...rest }) {

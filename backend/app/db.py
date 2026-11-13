@@ -21,6 +21,12 @@ CREATE TABLE IF NOT EXISTS versions(
 CREATE TABLE IF NOT EXISTS jobs(
   id TEXT PRIMARY KEY, filename TEXT, kind TEXT, status TEXT, stage TEXT, progress INTEGER,
   message TEXT, guide_id TEXT, created_at REAL, updated_at REAL);
+CREATE TABLE IF NOT EXISTS announcements(
+  id TEXT PRIMARY KEY, title TEXT, body TEXT, level TEXT, pinned INTEGER, published INTEGER,
+  ends_at REAL, created_at REAL, updated_at REAL);
+CREATE TABLE IF NOT EXISTS documents(
+  id TEXT PRIMARY KEY, title TEXT, description TEXT, platform TEXT, filename TEXT, ext TEXT, size INTEGER,
+  published INTEGER, downloads INTEGER NOT NULL DEFAULT 0, created_at REAL);
 CREATE TABLE IF NOT EXISTS feedback(
   guide_id TEXT, helpful INTEGER, reason TEXT, created_at REAL);
 """
@@ -230,3 +236,78 @@ def job_get(jid):
 def jobs_recent():
     with conn() as c:
         return [dict(r) for r in c.execute("SELECT * FROM jobs ORDER BY created_at DESC LIMIT 15")]
+
+
+# ---- thông báo ----
+LEVELS = ("info", "update", "warning")
+
+
+def _ann(data):
+    ends = data.get("ends_at")
+    return (str(data.get("title") or "").strip()[:200], str(data.get("body") or "").strip()[:4000],
+            data.get("level") if data.get("level") in LEVELS else "info", int(bool(data.get("pinned"))),
+            int(bool(data.get("published"))), float(ends) if isinstance(ends, (int, float)) and ends else None)
+
+
+def ann_list(active_only=False):
+    with conn() as c:
+        rows = [dict(r) for r in c.execute("SELECT * FROM announcements ORDER BY pinned DESC, created_at DESC")]
+    if active_only:
+        now = time.time()
+        rows = [r for r in rows if r["published"] and (not r["ends_at"] or r["ends_at"] > now)]
+    return rows
+
+
+def ann_save(data, aid=None):
+    vals, now = _ann(data), time.time()
+    with conn() as c:
+        if aid:
+            c.execute("UPDATE announcements SET title=?,body=?,level=?,pinned=?,published=?,ends_at=?,updated_at=? WHERE id=?", (*vals, now, aid))
+        else:
+            aid = uuid.uuid4().hex[:12]
+            c.execute("INSERT INTO announcements VALUES(?,?,?,?,?,?,?,?,?)", (aid, *vals, now, now))
+        r = c.execute("SELECT * FROM announcements WHERE id=?", (aid,)).fetchone()
+    return dict(r) if r else None
+
+
+def ann_delete(aid):
+    with conn() as c:
+        c.execute("DELETE FROM announcements WHERE id=?", (aid,))
+
+
+# ---- tài liệu tải về ----
+def doc_list(published_only=False):
+    with conn() as c:
+        rows = [dict(r) for r in c.execute("SELECT * FROM documents ORDER BY created_at DESC")]
+    return [r for r in rows if r["published"]] if published_only else rows
+
+
+def doc_get(did):
+    with conn() as c:
+        r = c.execute("SELECT * FROM documents WHERE id=?", (did,)).fetchone()
+    return dict(r) if r else None
+
+
+def doc_create(did, title, description, platform, filename, ext, size):
+    with conn() as c:
+        c.execute("INSERT INTO documents(id,title,description,platform,filename,ext,size,published,created_at) VALUES(?,?,?,?,?,?,?,1,?)",
+                  (did, title[:200], description[:1000], platform, filename[:150], ext, size, time.time()))
+    return doc_get(did)
+
+
+def doc_update(did, data):
+    with conn() as c:
+        c.execute("UPDATE documents SET title=?, description=?, platform=?, published=? WHERE id=?",
+                  (str(data.get("title") or "").strip()[:200], str(data.get("description") or "").strip()[:1000],
+                   data.get("platform") if data.get("platform") in ("mobile", "web", "all") else "all", int(bool(data.get("published"))), did))
+    return doc_get(did)
+
+
+def doc_delete(did):
+    with conn() as c:
+        c.execute("DELETE FROM documents WHERE id=?", (did,))
+
+
+def doc_bump(did):
+    with conn() as c:
+        c.execute("UPDATE documents SET downloads=downloads+1 WHERE id=?", (did,))

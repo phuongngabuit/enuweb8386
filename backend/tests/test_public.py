@@ -68,3 +68,30 @@ def test_ask_without_key_falls_back_to_search(public):
 def test_symptoms(public):
     s = public.get("/api/symptoms").json()
     assert s and all(c["guide"] for x in s for c in x["causes"])
+
+
+def test_announcements_and_documents(public, editor, samples):
+    assert public.get("/api/announcements").json()[0]["title"].startswith("Chào mừng")
+    a = editor.post("/editor/api/announcements", json={"title": "Bảo trì 22h", "body": "Tạm ngưng 30 phút", "level": "warning", "published": False}).json()
+    assert all(x["id"] != a["id"] for x in public.get("/api/announcements").json())          # nháp không lộ ra
+    editor.put(f"/editor/api/announcements/{a['id']}", json={**a, "published": True})
+    assert any(x["id"] == a["id"] and x["level"] == "warning" for x in public.get("/api/announcements").json())
+    editor.put(f"/editor/api/announcements/{a['id']}", json={**a, "published": True, "ends_at": 1})  # đã hết hạn
+    assert all(x["id"] != a["id"] for x in public.get("/api/announcements").json())
+    assert editor.delete(f"/editor/api/announcements/{a['id']}").status_code == 200
+    assert public.post("/api/announcements", json={"title": "x"}).status_code == 405
+    assert public.post("/editor/api/announcements", json={"title": "x"}).status_code in (404, 405)
+
+    with open(samples / "mau.pdf", "rb") as f:
+        d = editor.post("/editor/api/documents", files={"file": ("So tay.pdf", f)}, data={"title": "Sổ tay sử dụng", "platform": "mobile"}).json()
+    assert d["title"] == "Sổ tay sử dụng" and d["ext"] == "pdf"
+    assert public.get("/api/documents").json()[0]["id"] == d["id"]
+    r = public.get(f"/api/documents/{d['id']}/download")
+    assert r.status_code == 200 and r.content.startswith(b"%PDF") and "attachment" in r.headers["content-disposition"]
+    editor.put(f"/editor/api/documents/{d['id']}", json={**d, "published": False})
+    assert public.get("/api/documents").json() == [] and public.get(f"/api/documents/{d['id']}/download").status_code == 404
+    assert editor.post("/editor/api/documents", files={"file": ("a.exe", b"MZ")}).status_code == 400
+    assert editor.post("/editor/api/documents", files={"file": ("gia.pdf", b"khong phai pdf")}).status_code == 400
+    assert editor.delete(f"/editor/api/documents/{d['id']}").status_code == 200
+    from app import config
+    assert not any(config.DOCS_DIR.iterdir())

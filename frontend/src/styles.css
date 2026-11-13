@@ -256,6 +256,27 @@ code { font-size: .85em; background: #eef2f8; padding: 1px 6px; border-radius: 5
 .assets button:hover, .asset-up:hover { border-color: var(--blue); } .assets button.used { opacity: .45; }
 .assets img { width: 100%; height: 140px; object-fit: contain; background: #fff; border-radius: 6px; } .asset-up { place-content: center; justify-items: center; min-height: 170px; }
 
+.st-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--bg); padding: 4px; border-radius: 12px; }
+.st-tabs button { display: grid; justify-items: center; gap: 3px; padding: 9px 4px; border: 0; background: none; border-radius: 9px; font-size: .82rem; font-weight: 600; color: var(--muted); }
+.st-tabs button.on { background: #fff; color: var(--blue-d); box-shadow: var(--shadow); } .st-hint { font-size: .88rem; }
+.adm-h { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; margin-top: 6px; } .adm-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.adm-row { display: flex; gap: 16px; align-items: flex-start; padding: 14px 18px; } .adm-row .grow { min-width: 0; display: grid; gap: 4px; } .adm-row p { margin: 0; font-size: .9rem; white-space: pre-line; }
+.adm-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .82rem; } .adm-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex: none; max-width: 260px; }
+.adm-confirm { display: inline-flex; gap: 6px; align-items: center; font-size: .86rem; color: var(--red); font-weight: 600; } .btn.danger-solid { background: var(--red); border-color: var(--red); color: #fff; }
+.ed input[type=file] { padding: 14px; border-style: dashed; background: var(--bg); }
+.doc-ext { width: 52px; height: 52px; flex: none; border-radius: 12px; display: grid; place-items: center; font-size: .72rem; font-weight: 800; letter-spacing: .04em; color: #fff; background: #c0352b; }
+.doc-ext.docx { background: #1f55e0; } .doc-ext.xlsx { background: #0b7a55; } .doc-ext.pptx { background: #c2570a; }
+.feed { display: grid; gap: 12px; } .page-narrow { max-width: 900px; padding-top: 32px; }
+.news { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; } .news h3 { margin: 6px 0 4px; } .news p { margin: 0; color: var(--muted); white-space: pre-line; }
+.news-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: .8rem; color: var(--muted); } .news .pinned { display: inline-flex; gap: 4px; align-items: center; }
+.lv { font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--blue-50); color: var(--blue-d); } .lv.update { background: var(--green-50); color: var(--green); } .lv.warning { background: var(--amber-50); color: var(--amber); }
+.doc { display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: #fff; border: 1px solid var(--line); border-radius: 16px; color: var(--text); text-decoration: none !important; }
+.doc-txt { flex: 1; min-width: 0; display: grid; } .doc-txt em { font-style: normal; font-size: .88rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .doc-size { font-size: .82rem; color: var(--muted); white-space: nowrap; }
+.doc u { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); flex: none; text-decoration: none; }
+.seg { display: inline-flex; gap: 4px; padding: 4px; background: #fff; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 18px; }
+.seg button { border: 0; background: none; padding: 9px 16px; border-radius: 10px; font-weight: 600; color: var(--muted); } .seg button.on { background: var(--navy); color: #fff; }
+.bell { position: relative; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; color: var(--muted); flex: none; }
+.bell i { position: absolute; top: 3px; right: 2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: #ff2d78; color: #fff; font: 700 .66rem/17px system-ui; text-align: center; }
 @media (max-width: 1000px) {
   .grid4, .path { grid-template-columns: repeat(2, 1fr); } .grid3 { grid-template-columns: repeat(2, 1fr); }
   .glayout { grid-template-columns: 1fr; gap: 20px; }

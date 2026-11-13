@@ -10,7 +10,7 @@ import uuid
 from collections import OrderedDict, defaultdict, deque
 from pathlib import Path
 
-from fastapi import APIRouter, Body, Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Body, Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
 from . import config, db, media, seed
@@ -20,6 +20,10 @@ from .search import card, search
 from .textnorm import norm
 
 MEDIA_TYPES = {".webp": "image/webp", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".mp4": "video/mp4"}
+DOC_TYPES = {"pdf": "application/pdf",
+             "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+             "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+             "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation"}
 REASONS = {"khong-dung-loi", "kho-hieu", "thieu-buoc", "anh-khac", "khac", ""}
 
 # ---------------------------------------------------------------- public
@@ -125,6 +129,35 @@ def symptoms():
         if causes:
             out.append({**s, "causes": causes})
     return out
+
+
+def _pub_ann(a):
+    return {k: a[k] for k in ("id", "title", "body", "level", "pinned", "created_at")}
+
+
+def _pub_doc(d):
+    return {k: d[k] for k in ("id", "title", "description", "platform", "filename", "ext", "size", "created_at")}
+
+
+@public.get("/announcements")
+def announcements():
+    return [_pub_ann(a) for a in db.ann_list(active_only=True)]
+
+
+@public.get("/documents")
+def documents():
+    return [_pub_doc(d) for d in db.doc_list(published_only=True)]
+
+
+@public.get("/documents/{did}/download")
+def document_download(did: str, request: Request):
+    rate_limit(request, "dl", 60, 60)
+    d = db.doc_get(did)
+    f = config.DOCS_DIR / f"{did}.{d['ext']}" if d and did.isalnum() else None
+    if not d or not d["published"] or not f.is_file():
+        raise HTTPException(404, "Không tìm thấy tài liệu.")
+    db.doc_bump(did)
+    return FileResponse(f, media_type=DOC_TYPES[d["ext"]], filename=d["filename"])
 
 
 ASK_SYSTEM = """Bạn là trợ lý hỗ trợ của phần mềm ENumber Chấm Công. Trả lời câu hỏi của người dùng bằng tiếng Việt, ngắn gọn (tối đa 4 câu), lịch sự.
@@ -319,6 +352,78 @@ def e_job(jid: str):
     if not j:
         raise HTTPException(404)
     return j
+
+
+# ---- thông báo
+@editor.get("/announcements")
+def e_ann_list():
+    return db.ann_list()
+
+
+@editor.post("/announcements")
+def e_ann_create(data: dict = Body(...)):
+    if not str(data.get("title") or "").strip():
+        raise HTTPException(400, "Thông báo cần có tiêu đề.")
+    return db.ann_save(data)
+
+
+@editor.put("/announcements/{aid}")
+def e_ann_update(aid: str, data: dict = Body(...)):
+    if not str(data.get("title") or "").strip():
+        raise HTTPException(400, "Thông báo cần có tiêu đề.")
+    a = db.ann_save(data, aid)
+    if not a:
+        raise HTTPException(404)
+    return a
+
+
+@editor.delete("/announcements/{aid}")
+def e_ann_delete(aid: str):
+    db.ann_delete(aid)
+    return {"ok": True}
+
+
+# ---- tài liệu tải về
+@editor.get("/documents")
+def e_doc_list():
+    return db.doc_list()
+
+
+@editor.post("/documents")
+async def e_doc_create(file: UploadFile = File(...), title: str = Form(""), description: str = Form(""), platform: str = Form("all")):
+    name = Path(file.filename or "tai-lieu").name[:150]
+    ext = Path(name).suffix.lower().lstrip(".")
+    if ext not in DOC_TYPES:
+        raise HTTPException(400, "Chỉ nhận tệp PDF, DOCX, XLSX hoặc PPTX.")
+    did = uuid.uuid4().hex[:12]
+    dest = config.DOCS_DIR / f"{did}.{ext}"
+    try:
+        await _receive(file, dest, config.MAX_DOC_BYTES)
+        head = dest.open("rb").read(8)
+        if not (head.startswith(b"%PDF") if ext == "pdf" else head.startswith(b"PK\x03\x04")):
+            raise HTTPException(400, f"Nội dung tệp không phải {ext.upper()} hợp lệ.")
+    except HTTPException:
+        dest.unlink(missing_ok=True)
+        raise
+    return db.doc_create(did, title.strip() or Path(name).stem, description.strip(),
+                         platform if platform in ("mobile", "web", "all") else "all", name, ext, dest.stat().st_size)
+
+
+@editor.put("/documents/{did}")
+def e_doc_update(did: str, data: dict = Body(...)):
+    if not db.doc_get(did):
+        raise HTTPException(404)
+    return db.doc_update(did, data)
+
+
+@editor.delete("/documents/{did}")
+def e_doc_delete(did: str):
+    d = db.doc_get(did)
+    if not d:
+        raise HTTPException(404)
+    db.doc_delete(did)
+    (config.DOCS_DIR / f"{did}.{d['ext']}").unlink(missing_ok=True)
+    return {"ok": True}
 
 
 # ---------------------------------------------------------------- app factory

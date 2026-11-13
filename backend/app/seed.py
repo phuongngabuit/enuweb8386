@@ -149,4 +149,6 @@ def run():
             steps.append({"title": title, "body": body, "image": f"seed/{name}", "hotspot": hot, "note": note, "warning": warn})
         gid = db.create_guide({**g, "steps": steps}, source={"filename": "Dữ liệu mẫu", "type": "seed", "imported_at": None})
         db.publish(gid)
+    db.ann_save({"title": "Chào mừng đến với SupportFlow", "level": "info", "pinned": True, "published": True,
+                 "body": "Đây là thông báo mẫu. Người biên tập có thể sửa hoặc xoá trong Studio, mục Thông báo."})
     return len(GUIDES)

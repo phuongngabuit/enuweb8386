@@ -61,6 +61,14 @@ Container có `restart: unless-stopped` nên tự chạy lại sau sự cố ho�
 Trong `.env` đặt `EDITOR_BIND=0.0.0.0` **và** một `EDITOR_TOKEN` dài, ngẫu nhiên (`openssl rand -hex 24`), rồi `docker compose up -d`.
 Không chuyển tiếp (port-forward) cổng 8081 ra Internet. Nếu đưa website ra Internet, chỉ công bố cổng 8080 qua reverse proxy có HTTPS.
 
+## Studio có ba mục
+
+| Mục | Dùng để |
+|---|---|
+| Hướng dẫn | AI Import DOCX/PDF/MP4 thành bài từng bước, sửa, xem trước, xuất bản. |
+| Tài liệu | Tải PDF/DOCX/XLSX/PPTX lên để người dùng **tải về nguyên tệp** (trang `/tai-lieu`). Ẩn/hiện, xoá, xem lượt tải. |
+| Thông báo | Soạn thông báo (Thông tin / Cập nhật / Quan trọng), ghim, hẹn ngày tự ẩn. Hiện ở đầu trang chủ, chuông trên thanh điều hướng và trang `/thong-bao`. |
+
 ## Quy trình biên tập
 
 1. Mở Studio → kéo thả DOCX/PDF/MP4 → theo dõi 5 chặng xử lý.

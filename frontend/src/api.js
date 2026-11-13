@@ -22,3 +22,5 @@ export const media = (file) => (file ? (window.__SF_MEDIA?.[file] || `/media/${f
 export const fmtTs = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 export const fmtDate = (t) => (t ? new Date(t * 1000).toLocaleDateString('vi-VN') : '')
 export const guideUrl = (slug, step) => `/huong-dan/${slug}${step != null ? `#buoc-${step + 1}` : ''}`
+export const fmtSize = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`)
+export const LEVELS = { info: 'Thông tin', update: 'Cập nhật', warning: 'Quan trọng' }

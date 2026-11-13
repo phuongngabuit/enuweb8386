@@ -6,6 +6,7 @@ import { MARK } from '../logo.js'
 import { useMeta } from '../App.jsx'
 import GuideView from '../components/GuideView.jsx'
 import StepImage from '../components/StepImage.jsx'
+import { DocsAdmin, NewsAdmin } from './StudioExtra.jsx'
 
 const STAGES = [['upload', 'Nhận tệp'], ['extract', 'Trích xuất'], ['ai', 'AI phân tích'], ['normalize', 'Ghép ảnh & chuẩn hoá'], ['build', 'Dựng bản nháp']]
 const BLANK = { title: '', body: '', image: null, hotspot: null, note: '', warning: '', uncertain: '', ts: null }
@@ -240,6 +241,7 @@ export default function Studio() {
   const [list, setList] = useState([])
   const [cur, setCur] = useState(null)
   const [tok, setTok] = useState('')
+  const [tab, setTab] = useState('guides')
   const refresh = () => api('/editor/api/guides').then(setList).catch(() => {})
   const connect = () => api('/editor/api/ping').then((p) => { setPing(p); setState('ok'); refresh() })
     .catch((e) => setState(e.status === 401 ? 'token' : 'off'))
@@ -259,6 +261,12 @@ export default function Studio() {
     <div className="studio">
       <aside className="st-side">
         <Link to="/" className="logo"><img className="logo-img" src={MARK} alt="" width="38" height="38" /><span><b>SupportFlow</b> <i>Studio</i></span></Link>
+        <div className="st-tabs" role="tablist">
+          {[['guides', 'book', 'Hướng dẫn'], ['docs', 'file', 'Tài liệu'], ['news', 'bell', 'Thông báo']].map(([k, ic, l]) => (
+            <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Icon name={ic} size={17} />{l}</button>
+          ))}
+        </div>
+        {tab === 'guides' && (<>
         <Importer ping={ping} onDone={(id) => { refresh(); setCur(id) }} />
         <div className="st-list-head"><b>Bài viết ({list.length})</b>
           <button className="link" onClick={async () => { const g = await api('/editor/api/guides', { method: 'POST' }); await refresh(); setCur(g.id) }}><Icon name="plus" size={15} /> Bài trống</button>
@@ -276,9 +284,11 @@ export default function Studio() {
             </li>
           ))}
         </ul>
+        </>)}
+        {tab !== 'guides' && <p className="muted st-hint">{tab === 'docs' ? 'Tệp tải lên ở đây được giữ nguyên để người dùng tải về.' : 'Thông báo hiện ở đầu trang chủ và trang Thông báo.'}</p>}
       </aside>
       <section className="st-main">
-        {cur ? <Editor key={cur} id={cur} onChanged={refresh} onDeleted={() => { setCur(null); refresh() }} />
+        {tab === 'docs' ? <DocsAdmin limitMb={ping.limits.doc_mb} /> : tab === 'news' ? <NewsAdmin /> : cur ? <Editor key={cur} id={cur} onChanged={refresh} onDeleted={() => { setCur(null); refresh() }} />
           : <div className="st-empty"><Icon name="sparkle" size={36} /><h2>Tải tệp lên để AI dựng bản nháp</h2><p className="muted">Hoặc chọn một bài ở cột bên trái để chỉnh sửa. Bài chỉ xuất hiện công khai sau khi bạn bấm Xuất bản.</p></div>}
       </section>
     </div>

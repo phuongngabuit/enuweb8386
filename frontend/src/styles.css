@@ -44,6 +44,8 @@ code { font-size: .85em; background: #eef2f8; padding: 1px 6px; border-radius: 5
 .hdr-in { display: flex; align-items: center; gap: 24px; height: 64px; }
 .logo { display: flex; align-items: center; gap: 10px; color: var(--navy); font-size: 1.05rem; text-decoration: none !important; white-space: nowrap; }
 .logo b { font-weight: 700; } .logo i { font-style: normal; color: var(--blue); font-weight: 600; }
+.logo-img { width: 44px; height: 44px; flex: none; }
+.ftr-brand { display: flex; gap: 16px; align-items: flex-start; } .ftr-brand img { flex: none; background: #fff; border-radius: 14px; padding: 6px; }
 .logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--navy); color: #4c9bff; display: grid; place-items: center; }
 .nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
 .nav a { padding: 8px 12px; border-radius: 8px; color: #3b4d68; font-weight: 500; font-size: .95rem; white-space: nowrap; text-decoration: none; }

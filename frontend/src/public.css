@@ -32,6 +32,7 @@
 .pub .hdr { background: rgba(6, 10, 28, .92); border-bottom: 1px solid rgba(255, 255, 255, .08); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); }
 .pub .hdr-in { height: 68px; }
 .pub .logo { color: #fff; } .pub .logo i { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pub .logo-img { filter: drop-shadow(0 0 10px rgba(24, 153, 211, .7)); transition: transform .4s var(--ease); } .pub .logo:hover .logo-img { transform: rotate(-8deg) scale(1.08); }
 .pub .logo-mark { background: var(--grad); color: #fff; box-shadow: 0 0 24px rgba(47, 107, 255, .65); }
 .pub .nav a { color: #b6c2e6; border-radius: 10px; position: relative; transition: color .2s, background .2s; }
 .pub .nav a:hover { background: rgba(255, 255, 255, .08); color: #fff; }

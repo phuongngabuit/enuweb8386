@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { api } from './api.js'
 import Icon from './icons.jsx'
+import { MARK } from './logo.js'
 import SearchBox from './components/SearchBox.jsx'
 import Home from './pages/Home.jsx'
 import Library from './pages/Library.jsx'
@@ -19,8 +20,8 @@ function Header({ onSearch }) {
     <header className="hdr">
       <div className="wrap hdr-in">
         <Link to="/" className="logo" aria-label="SupportFlow — trang chủ">
-          <span className="logo-mark"><Icon name="check" size={18} strokeWidth={3} /></span>
-          <span><b>eNumber</b> <i>SupportFlow</i></span>
+          <img className="logo-img" src={MARK} alt="" width="38" height="38" />
+          <span><b>ENumber</b> <i>SupportFlow</i></span>
         </Link>
         <nav className="nav" aria-label="Điều hướng chính">
           <NavLink to="/" end>Trang chủ</NavLink>
@@ -41,9 +42,12 @@ function Footer({ meta }) {
   return (
     <footer className="ftr">
       <div className="wrap ftr-in">
-        <div>
-          <b>Công ty Cổ phần Công nghệ eNumber</b>
-          <p>SupportFlow — Trung tâm hướng dẫn sử dụng ENumber Chấm Công.</p>
+        <div className="ftr-brand">
+          <img src={MARK} alt="Logo ENumber" width="56" height="56" />
+          <div>
+            <b>Công ty Cổ phần Công nghệ eNumber</b>
+            <p>SupportFlow — Trung tâm hướng dẫn sử dụng ENumber Chấm Công.</p>
+          </div>
         </div>
         <div id="ho-tro">
           <b>Hỗ trợ kỹ thuật</b>

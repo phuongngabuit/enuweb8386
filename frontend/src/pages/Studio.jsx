@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, editorToken, fmtDate, fmtTs, media } from '../api.js'
 import Icon from '../icons.jsx'
+import { MARK } from '../logo.js'
 import { useMeta } from '../App.jsx'
 import GuideView from '../components/GuideView.jsx'
 import StepImage from '../components/StepImage.jsx'
@@ -257,7 +258,7 @@ export default function Studio() {
   return (
     <div className="studio">
       <aside className="st-side">
-        <Link to="/" className="logo"><span className="logo-mark"><Icon name="check" size={18} strokeWidth={3} /></span><span><b>SupportFlow</b> <i>Studio</i></span></Link>
+        <Link to="/" className="logo"><img className="logo-img" src={MARK} alt="" width="38" height="38" /><span><b>SupportFlow</b> <i>Studio</i></span></Link>
         <Importer ping={ping} onDone={(id) => { refresh(); setCur(id) }} />
         <div className="st-list-head"><b>Bài viết ({list.length})</b>
           <button className="link" onClick={async () => { const g = await api('/editor/api/guides', { method: 'POST' }); await refresh(); setCur(g.id) }}><Icon name="plus" size={15} /> Bài trống</button>

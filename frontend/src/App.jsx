@@ -29,11 +29,11 @@ function Header({ onSearch }) {
           <span><b>ENumber</b> <i>SupportFlow</i></span>
         </Link>
         <nav className="nav" aria-label="Điều hướng chính">
-          <NavLink to="/" end>Trang chủ</NavLink>
           <NavLink to="/huong-dan?platform=mobile" className={() => (isP('mobile') ? 'active' : '')}>Hướng dẫn Mobile</NavLink>
           <NavLink to="/huong-dan?platform=web" className={() => (isP('web') ? 'active' : '')}>Hướng dẫn Web</NavLink>
           <NavLink to="/khac-phuc-loi">Khắc phục lỗi</NavLink>
           <NavLink to="/tai-lieu">Tài liệu</NavLink>
+          <NavLink to="/ho-tro">Hỗ trợ</NavLink>
         </nav>
         <Link to="/thong-bao" className="bell" aria-label={`Thông báo${news ? ` (${news} tin)` : ''}`}>
           <Icon name="bell" size={19} />{news > 0 && <i>{news}</i>}
@@ -115,10 +115,15 @@ export default function App() {
           <Route path="*" element={<div className="wrap empty"><h1>Không tìm thấy trang</h1><Link className="btn" to="/">Về trang chủ</Link></div>} />
         </Routes>
       </main>
-      {!studio && <Footer meta={meta} />}
       {!studio && loc.pathname !== '/ho-tro' && (
-        <Link to="/ho-tro" state={{ from: loc.pathname }} className="fab"><Icon name="chat" size={20} /><span>Gửi yêu cầu hỗ trợ</span></Link>
+        <section className="help-strip">
+          <div className="wrap">
+            <div><h2>Vẫn cần trợ giúp?</h2><p>Để lại số điện thoại và mô tả lỗi, bộ phận kỹ thuật sẽ liên hệ lại với bạn.</p></div>
+            <Link to="/ho-tro" state={{ from: loc.pathname }} className="btn"><Icon name="chat" size={18} /> Gửi yêu cầu hỗ trợ</Link>
+          </div>
+        </section>
       )}
+      {!studio && <Footer meta={meta} />}
       {palette && (
         <div className="overlay top" onMouseDown={(e) => e.target === e.currentTarget && setPalette(false)}>
           <div className="palette"><SearchBox autoFocus /></div>

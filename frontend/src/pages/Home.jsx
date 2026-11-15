@@ -1,161 +1,106 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, guideUrl } from '../api.js'
 import Icon from '../icons.jsx'
 import { useMeta } from '../App.jsx'
 import SearchBox from '../components/SearchBox.jsx'
-import GuideCard, { PlatformTag } from '../components/GuideCard.jsx'
 import Wizard from '../components/Wizard.jsx'
-import HeroPhone from '../components/HeroPhone.jsx'
-import Reveal from '../components/Reveal.jsx'
 import { NewsItem, DocRow } from '../components/Feed.jsx'
 
-const ASKS = ['Quên mật khẩu đăng nhập', 'Chấm công không nhận khuôn mặt', 'Báo ngoài phạm vi chấm công', 'Xuất bảng công ra Excel',
-  'Đăng ký khuôn mặt lần đầu', 'Tạo đơn công tác', 'Duyệt đơn nghỉ phép', 'Cài ứng dụng trên điện thoại']
-
-function Count({ to }) {
-  const [n, setN] = useState(0)
-  useEffect(() => {
-    if (!to) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setN(to); return }
-    const t0 = performance.now(); let raf
-    const f = (t) => { const k = Math.min(1, (t - t0) / 1100); setN(Math.round(to * (1 - (1 - k) ** 3))); if (k < 1) raf = requestAnimationFrame(f) }
-    raf = requestAnimationFrame(f)
-    return () => cancelAnimationFrame(raf)
-  }, [to])
-  return <b>{String(n).padStart(2, '0')}</b>
+const GROUPS = {
+  mobile: { icon: 'phone', title: 'Mobile App', desc: 'Cài đặt, đăng nhập, đăng ký khuôn mặt, chấm công, đăng ký công tác.' },
+  web: { icon: 'monitor', title: 'Web App', desc: 'Đăng nhập, quản lý, thống kê, báo cáo và phê duyệt.' },
 }
 
-function Head({ kicker, title, to }) {
+function LinkList({ items }) {
   return (
-    <div className="sec-head2">
-      <div><span className="kicker">{kicker}</span><h2>{title}</h2></div>
-      {to && <Link to={to} className="more">Xem tất cả <Icon name="arrow" size={16} /></Link>}
-    </div>
+    <ul className="llist">
+      {items.map((g) => (
+        <li key={g.slug}>
+          <Link to={guideUrl(g.slug)}>
+            <Icon name={g.kind === 'fix' ? 'wrench' : 'book'} size={18} />
+            <span>{g.title}</span>
+            <em>{g.steps_count} bước · {g.platform === 'web' ? 'Web' : 'Mobile'}</em>
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }
 
 export default function Home() {
   const meta = useMeta()
   const [home, setHome] = useState(null)
-  const hero = useRef(null)
   const [news, setNews] = useState([])
   const [docs, setDocs] = useState([])
-  useEffect(() => { api('/api/announcements').then(setNews).catch(() => {}); api('/api/documents').then(setDocs).catch(() => {}) }, [])
-  useEffect(() => { api('/api/home').then(setHome).catch(() => setHome({ popular: [], fixes: [], beginner: [] })) }, [])
+  useEffect(() => {
+    api('/api/home').then(setHome).catch(() => setHome({ popular: [], fixes: [], beginner: [] }))
+    api('/api/announcements').then(setNews).catch(() => {})
+    api('/api/documents').then(setDocs).catch(() => {})
+  }, [])
   const cats = (p) => Object.entries(meta?.categories || {}).filter(([k]) => meta.counts[`${p}:${k}`])
-  const tilt = (e) => {
-    const r = hero.current.getBoundingClientRect()
-    hero.current.style.setProperty('--px', ((e.clientX - r.left) / r.width - 0.5).toFixed(3))
-    hero.current.style.setProperty('--py', ((e.clientY - r.top) / r.height - 0.5).toFixed(3))
-  }
   return (
     <>
-      <section className="hero2" ref={hero} onPointerMove={tilt}>
-        <div className="fx"><i /><i /><i /></div>
-        {news[0] && (
-          <div className="wrap"><Link to="/thong-bao" className={`abar ${news[0].level}`}>
-            <span><Icon name="bell" size={15} /> Thông báo</span><b>{news[0].title}</b><Icon name="arrow" size={16} />
-          </Link></div>
-        )}
-        <div className="wrap hero2-in">
-          <div className="hero2-copy">
-            <span className="pill"><Icon name="sparkle" size={15} /> Trung tâm hướng dẫn · ENumber Chấm Công</span>
-            <h1>Bạn cần <em>hỗ trợ</em><br />điều gì?</h1>
-            <p className="hero2-sub">Mô tả vấn đề bằng lời của bạn. SupportFlow tìm đúng bài và mở đúng bước cần làm.</p>
-            <SearchBox big />
-            <div className="stats">
-              <div><Count to={meta?.total} /><span>bài hướng dẫn</span></div>
-              <div><Count to={meta?.steps} /><span>bước có hình minh hoạ</span></div>
-              <div><Count to={2} /><span>nền tảng Mobile & Web</span></div>
-            </div>
-          </div>
-          <HeroPhone />
-        </div>
-        <div className="mq">
-          <div className="mq-track">
-            {[0, 1].map((k) => ASKS.map((a) => (
-              <Link key={k + a} to={`/huong-dan?q=${encodeURIComponent(a)}`} aria-hidden={k === 1} tabIndex={k === 1 ? -1 : undefined}>
-                <Icon name="search" size={14} /> {a}
-              </Link>
-            )))}
-          </div>
+      {news[0] && (
+        <Link to="/thong-bao" className={`abar ${news[0].level}`}>
+          <span className="wrap"><Icon name="bell" size={17} /><b>{news[0].title}</b><u>Xem chi tiết</u></span>
+        </Link>
+      )}
+      <section className="hero3">
+        <div className="wrap">
+          <h1>Bạn cần hỗ trợ điều gì?</h1>
+          <SearchBox big />
         </div>
       </section>
 
-      <div className="wrap">
-        <div className="bento">
-          <Reveal className="tile t-mobile spot">
-            <span className="deco d1" /><span className="deco d2" />
-            <span className="tile-ico"><Icon name="phone" size={26} /></span>
-            <span className="tile-n">{String(meta?.counts?.mobile || 0).padStart(2, '0')}<small>bài</small></span>
-            <h2><Link to="/huong-dan?platform=mobile">Mobile App <Icon name="arrow" size={22} /></Link></h2>
-            <p>Cài đặt, đăng nhập, đăng ký khuôn mặt, chấm công và đăng ký công tác ngay trên điện thoại.</p>
-            <div className="tchips">{cats('mobile').map(([k, l]) => <Link key={k} to={`/huong-dan?platform=mobile&category=${k}`}>{l}</Link>)}</div>
-          </Reveal>
-          <Reveal className="tile t-web spot" delay={90}>
-            <span className="deco w1" />
-            <span className="tile-ico"><Icon name="monitor" size={26} /></span>
-            <span className="tile-n">{String(meta?.counts?.web || 0).padStart(2, '0')}<small>bài</small></span>
-            <h2><Link to="/huong-dan?platform=web">Web App <Icon name="arrow" size={22} /></Link></h2>
-            <p>Đăng nhập, quản lý, thống kê, báo cáo và phê duyệt trên máy tính.</p>
-            <div className="tchips">{cats('web').map(([k, l]) => <Link key={k} to={`/huong-dan?platform=web&category=${k}`}>{l}</Link>)}</div>
-          </Reveal>
-          <Reveal className="tile t-wiz">
-            <span className="kicker">Chẩn đoán nhanh</span>
-            <Wizard />
-          </Reveal>
-          {home?.beginner.length > 0 && (
-            <Reveal className="tile t-path" delay={90}>
-              <span className="kicker">Người mới bắt đầu</span>
-              <h3>Lộ trình {home.beginner.length} bài để dùng thành thạo</h3>
-              <ol>
-                {home.beginner.map((g, i) => (
-                  <li key={g.slug}><Link to={guideUrl(g.slug)}><i>{i + 1}</i><span><b>{g.title}</b><em>{g.steps_count} bước · {g.platform === 'web' ? 'Web' : 'Mobile'}</em></span><Icon name="arrow" size={17} /></Link></li>
-                ))}
-              </ol>
-            </Reveal>
+      <div className="wrap home">
+        <section className="prods">
+          {Object.entries(GROUPS).map(([p, g]) => (
+            <div key={p} className="prod">
+              <span className="prod-ico"><Icon name={g.icon} size={26} /></span>
+              <h2><Link to={`/huong-dan?platform=${p}`}>{g.title}</Link></h2>
+              <p>{g.desc}</p>
+              <ul>{cats(p).map(([k, l]) => <li key={k}><Link to={`/huong-dan?platform=${p}&category=${k}`}>{l}</Link></li>)}</ul>
+              <Link className="all" to={`/huong-dan?platform=${p}`}>Xem tất cả {meta?.counts?.[p] || 0} bài <Icon name="arrow" size={16} /></Link>
+            </div>
+          ))}
+        </section>
+
+        <section className="cols">
+          {home?.popular.length > 0 && (
+            <div><h2>Bài viết phổ biến</h2><LinkList items={home.popular} /><Link className="all" to="/huong-dan">Xem thư viện hướng dẫn <Icon name="arrow" size={16} /></Link></div>
           )}
-        </div>
+          {home?.fixes.length > 0 && (
+            <div><h2>Lỗi thường gặp</h2><LinkList items={home.fixes} /><Link className="all" to="/khac-phuc-loi">Xem tất cả bài khắc phục lỗi <Icon name="arrow" size={16} /></Link></div>
+          )}
+        </section>
+
+        <section>
+          <h2>Chẩn đoán theo triệu chứng</h2>
+          <Wizard />
+        </section>
+
+        {home?.beginner.length > 0 && (
+          <section>
+            <h2>Dành cho người mới</h2>
+            <ol className="starter">
+              {home.beginner.map((g, i) => (
+                <li key={g.slug}><Link to={guideUrl(g.slug)}><i>{i + 1}</i><span>{g.title}</span></Link></li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {(news.length > 0 || docs.length > 0) && (
-          <section className="sec2 duo">
+          <section className="cols">
             {news.length > 0 && (
-              <div>
-                <Head kicker="Mới nhất" title="Thông báo" to="/thong-bao" />
-                <div className="feed">{news.slice(0, 3).map((a) => <NewsItem key={a.id} a={a} compact />)}</div>
-              </div>
+              <div><h2>Thông báo</h2><div className="feed">{news.slice(0, 2).map((a) => <NewsItem key={a.id} a={a} compact />)}</div>
+                <Link className="all" to="/thong-bao">Xem tất cả thông báo <Icon name="arrow" size={16} /></Link></div>
             )}
             {docs.length > 0 && (
-              <div>
-                <Head kicker="Tải về" title="Tài liệu" to="/tai-lieu" />
-                <div className="feed">{docs.slice(0, 4).map((d) => <DocRow key={d.id} d={d} />)}</div>
-              </div>
+              <div><h2>Tài liệu tải về</h2><div className="feed">{docs.slice(0, 3).map((d) => <DocRow key={d.id} d={d} />)}</div>
+                <Link className="all" to="/tai-lieu">Xem tất cả tài liệu <Icon name="arrow" size={16} /></Link></div>
             )}
-          </section>
-        )}
-
-        {home?.popular.length > 0 && (
-          <section className="sec2">
-            <Head kicker="Phổ biến" title="Hướng dẫn được xem nhiều" to="/huong-dan" />
-            <div className="grid4">{home.popular.map((g, i) => <Reveal key={g.slug} delay={i * 70}><GuideCard g={g} /></Reveal>)}</div>
-          </section>
-        )}
-        {home?.fixes.length > 0 && (
-          <section className="sec2">
-            <Head kicker="Gỡ rối" title="Lỗi thường gặp" to="/khac-phuc-loi" />
-            <div className="frows">
-              {home.fixes.map((g, i) => (
-                <Reveal key={g.slug} delay={i * 60}>
-                  <Link to={guideUrl(g.slug)} className="frow spot">
-                    <i>{String(i + 1).padStart(2, '0')}</i>
-                    <span><b>{g.title}</b><em>{g.summary}</em></span>
-                    <PlatformTag p={g.platform} />
-                    <u><Icon name="arrow" size={20} /></u>
-                  </Link>
-                </Reveal>
-              ))}
-            </div>
           </section>
         )}
       </div>

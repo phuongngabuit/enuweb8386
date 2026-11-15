@@ -100,19 +100,18 @@ export default function Support() {
           </form>
         )}
         <aside className="sp-side">
-          <div className="tile t-path sp-steps">
-            <span className="kicker">Sau khi gửi</span>
-            <h3>Yêu cầu của bạn đi đâu?</h3>
+          <div className="tile sp-steps">
+            <h3>Sau khi bạn gửi</h3>
             <ol>
-              <li><a><i>1</i><span><b>Tới thẳng nhóm kỹ thuật</b><em>Yêu cầu và ảnh được chuyển ngay qua Zalo</em></span></a></li>
-              <li><a><i>2</i><span><b>Kỹ thuật viên xem ảnh lỗi</b><em>Có ảnh thì tìm ra nguyên nhân nhanh hơn</em></span></a></li>
-              <li><a><i>3</i><span><b>Gọi lại cho bạn</b><em>Theo số điện thoại bạn để lại</em></span></a></li>
+              <li><b>Yêu cầu tới nhóm kỹ thuật</b><span>Nội dung và ảnh được chuyển ngay qua Zalo.</span></li>
+              <li><b>Kỹ thuật viên xem ảnh lỗi</b><span>Có ảnh thì tìm ra nguyên nhân nhanh hơn.</span></li>
+              <li><b>Gọi lại cho bạn</b><span>Theo số điện thoại bạn để lại.</span></li>
             </ol>
           </div>
           <div className="tile sp-tip">
             <b>Thử tự xử lý trước?</b>
             <p className="muted">Nhiều lỗi có sẵn cách khắc phục trong 1–2 phút.</p>
-            <Link to="/khac-phuc-loi" className="more">Chẩn đoán theo triệu chứng <Icon name="arrow" size={16} /></Link>
+            <Link to="/khac-phuc-loi" className="all">Chẩn đoán theo triệu chứng <Icon name="arrow" size={16} /></Link>
           </div>
         </aside>
       </div>

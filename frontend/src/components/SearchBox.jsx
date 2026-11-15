@@ -5,7 +5,7 @@ import Icon from '../icons.jsx'
 import { useMeta } from '../App.jsx'
 import { PlatformTag } from './GuideCard.jsx'
 
-const HINTS = ['Chấm công không nhận khuôn mặt', 'Quên mật khẩu', 'Báo sai vị trí khi chấm công', 'Xuất báo cáo Excel', 'Đăng ký công tác']
+const HINTS = ['Chấm công không nhận khuôn mặt', 'Quên mật khẩu', 'Xuất báo cáo Excel']
 
 export default function SearchBox({ autoFocus, big }) {
   const meta = useMeta()
@@ -15,20 +15,6 @@ export default function SearchBox({ autoFocus, big }) {
   const [sel, setSel] = useState(-1)
   const [ai, setAi] = useState(null) // {loading} | {answer, cited}
   const seq = useRef(0)
-  const [ph, setPh] = useState('')
-  useEffect(() => { // gõ chữ lần lượt các câu hỏi mẫu vào placeholder
-    if (!big || q || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let i = 0, n = 0, dir = 1, t
-    const tick = () => {
-      const s = HINTS[i]
-      n += dir; setPh(s.slice(0, n))
-      let wait = dir > 0 ? 55 : 22
-      if (n === s.length) { dir = -1; wait = 1700 } else if (n === 0) { dir = 1; i = (i + 1) % HINTS.length; wait = 350 }
-      t = setTimeout(tick, wait)
-    }
-    t = setTimeout(tick, 600)
-    return () => clearTimeout(t)
-  }, [big, q])
 
   useEffect(() => {
     setAi(null); setSel(-1)
@@ -61,13 +47,13 @@ export default function SearchBox({ autoFocus, big }) {
       <div className="sb-field">
         <Icon name="search" size={big ? 24 : 20} />
         <input autoFocus={autoFocus} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
-          placeholder={big && ph ? `${ph}▍` : 'Mô tả điều bạn cần, ví dụ: chấm công không nhận khuôn mặt'} aria-label="Tìm hướng dẫn"
+          placeholder="Mô tả vấn đề của bạn, ví dụ: chấm công không nhận khuôn mặt" aria-label="Tìm hướng dẫn"
           role="combobox" aria-expanded={!!res} aria-controls="sb-list" autoComplete="off" enterKeyHint="search" />
         {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Xoá"><Icon name="x" size={18} /></button>}
       </div>
       {!q && (
         <div className="sb-hints">
-          <span>Thử:</span>
+          <span>Tìm nhiều:</span>
           {HINTS.map((h) => <button key={h} onClick={() => setQ(h)}>{h}</button>)}
         </div>
       )}
